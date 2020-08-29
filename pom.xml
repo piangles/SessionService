@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.TBD.backbone.services</groupId>
+	<artifactId>SessionService</artifactId>
+	<packaging>jar</packaging>
+	<version>0.1</version>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.TBD.backbone.services</groupId>
+			<artifactId>BackBoneServices</artifactId>
+			<version>0.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.TBD.core</groupId>
+			<artifactId>Core</artifactId>
+			<version>0.1</version>
+		</dependency>
+
+		<!--This is required for runtime when configuration for SessionValidator -->
+		<!-- <dependency> <groupId>com.TBD.backbone.services</groupId> <artifactId>mod-tier0-locator</artifactId> 
+			<version>${mod-tier0-locator-version}</version> <scope>runtime</scope> </dependency> -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit-version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>svc-session</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>com.TBD.backbone.services.session.SessionManagementServiceContainer</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven-dependency-plugin}</version>
+				<executions>
+					<execution>
+						<id>copy-installed</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>com.TBD.backbone.services</groupId>
+									<artifactId>svc-session</artifactId>
+									<version>${svc-session-version}</version>
+									<type>jar</type>
+									<classifier>jar-with-dependencies</classifier>
+									<overWrite>true</overWrite>
+									<outputDirectory>../Export</outputDirectory>
+									<destFileName>svc-session.jar</destFileName>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+</project>
