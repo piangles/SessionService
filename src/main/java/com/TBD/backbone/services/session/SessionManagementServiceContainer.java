@@ -15,7 +15,9 @@ public class SessionManagementServiceContainer extends AbstractContainer
 		}
 		catch (ContainerException e)
 		{
-			EmailSupport.notify(e, e.getMessage());
+			//EmailSupport.notify(e, e.getMessage());
+			//TODO Log the service could not come up here System.err.Println("")
+			//Log scrappers / Process monitor will pick it up.
 			System.exit(-1);
 		}
 	}
