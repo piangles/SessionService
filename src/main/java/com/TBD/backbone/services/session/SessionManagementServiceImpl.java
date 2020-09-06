@@ -3,7 +3,7 @@ package com.TBD.backbone.services.session;
 import java.util.HashMap;
 import java.util.UUID;
 
-import com.TBD.backbone.services.Tier2ServiceLocator;
+import com.TBD.backbone.services.Locator;
 import com.TBD.backbone.services.logging.LoggingService;
 import com.TBD.backbone.services.session.dao.SessionManagementDAO;
 import com.TBD.backbone.services.session.dao.SimpleSessionManagementDAOImpl;
@@ -33,7 +33,8 @@ import com.TBD.core.dao.DAOException;
  */
 public class SessionManagementServiceImpl implements SessionManagementService
 {
-	private LoggingService logger = Tier2ServiceLocator.getInstance().getLoggingService();
+	//TODO Vamsi - Need POM to be updated to include BackbonServicesLocator
+	private LoggingService logger = Locator.getInstance().getLoggingService();
 	private HashMap<String, String> predeterminedSessionIdMap = null;
 	private SessionManagementDAO sessionManagementDAO;
 	private boolean allowMultipleSessionsPerUser;
@@ -130,17 +131,5 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			logger.error(message, e);
 			throw new SessionManagementException(message);
 		}
-	}
-
-	@Override
-	public SessionDetails getSessionDetails(String arg0) throws SessionManagementException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void unregister(String arg0) throws SessionManagementException {
-		// TODO Auto-generated method stub
-		
 	}
 }
