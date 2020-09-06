@@ -131,4 +131,16 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			throw new SessionManagementException(message);
 		}
 	}
+
+	@Override
+	public SessionDetails getSessionDetails(String arg0) throws SessionManagementException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void unregister(String arg0) throws SessionManagementException {
+		// TODO Auto-generated method stub
+		
+	}
 }

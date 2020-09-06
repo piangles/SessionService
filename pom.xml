@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.TBD.backbone.services</groupId>
@@ -6,13 +7,21 @@
 	<packaging>jar</packaging>
 	<version>0.1</version>
 
+	<properties>
+		<org.springframework.build.aws-maven-version>5.0.0.RELEASE</org.springframework.build.aws-maven-version>
+		<maven-compiler-plugin-version>3.3</maven-compiler-plugin-version>
+		<maven-dependency-plugin>2.10</maven-dependency-plugin>
+		<java-source-version>1.8</java-source-version>
+		<java-target-version>1.8</java-target-version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.TBD.backbone.services</groupId>
 			<artifactId>BackBoneServices</artifactId>
 			<version>0.1</version>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>com.TBD.core</groupId>
 			<artifactId>Core</artifactId>
@@ -25,41 +34,56 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>${junit-version}</version>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>piangle-s3-artifact-central</id>
+			<url>s3://piangle-s3-artifact/snapshot</url>
+		</snapshotRepository>
+		<repository>
+			<id>piangle-s3-artifact-release</id>
+			<url>s3://piangle-s3-artifact/release</url>
+		</repository>
+	</distributionManagement>
+
 	<build>
-		<finalName>svc-session</finalName>
-		<plugins>
+		<finalName>SessionService</finalName>
+
+		<extensions>
+			<extension>
+				<groupId>org.springframework.build</groupId>
+				<artifactId>aws-maven</artifactId>
+				<version>5.0.0.RELEASE</version>
+			</extension>
+		</extensions>
+
+	  <plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin-version}</version>
 				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					<archive>
-						<manifest>
-							<mainClass>com.TBD.backbone.services.session.SessionManagementServiceContainer</mainClass>
-						</manifest>
-					</archive>
+					<source>${java-source-version}</source>
+					<target>${java-target-version}</target>
 				</configuration>
 			</plugin>
-
-			<plugin>
+		
+	  
+	  
+	  
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-assembly-plugin</artifactId> 
+				<executions> <execution> <phase>package</phase> <goals> <goal>single</goal> 
+				</goals> </execution> </executions> <configuration> <descriptorRefs> <descriptorRef>jar-with-dependencies</descriptorRef> 
+				</descriptorRefs> <archive> <manifest> <mainClass>com.TBD.backbone.services.session.SessionManagementServiceContainer</mainClass> 
+				</manifest> </archive> </configuration> </plugin> -->
+		<!--	<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>${maven-dependency-plugin}</version>
+				<version>3.1.1</version>
 				<executions>
 					<execution>
 						<id>copy-installed</id>
@@ -83,7 +107,7 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin> -->	
 
 		</plugins>
 	</build>
