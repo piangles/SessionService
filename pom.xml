@@ -26,7 +26,7 @@
 			<artifactId>BackBoneServicesLocator</artifactId>
 			<version>0.1</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.TBD.core</groupId>
 			<artifactId>Core</artifactId>
@@ -66,7 +66,7 @@
 			</extension>
 		</extensions>
 
-	  <plugins>
+		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -76,16 +76,30 @@
 					<target>${java-target-version}</target>
 				</configuration>
 			</plugin>
-		
-	  
-	  
-	  
-			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-assembly-plugin</artifactId> 
-				<executions> <execution> <phase>package</phase> <goals> <goal>single</goal> 
-				</goals> </execution> </executions> <configuration> <descriptorRefs> <descriptorRef>jar-with-dependencies</descriptorRef> 
-				</descriptorRefs> <archive> <manifest> <mainClass>com.TBD.backbone.services.session.SessionManagementServiceContainer</mainClass> 
-				</manifest> </archive> </configuration> </plugin> -->
-		<!--	<plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>com.TBD.backbone.services.session.SessionManagementServiceContainer</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>3.1.1</version>
@@ -100,19 +114,19 @@
 							<artifactItems>
 								<artifactItem>
 									<groupId>com.TBD.backbone.services</groupId>
-									<artifactId>svc-session</artifactId>
-									<version>${svc-session-version}</version>
+									<artifactId>SessionService</artifactId>
+									<version>0.1</version>
 									<type>jar</type>
 									<classifier>jar-with-dependencies</classifier>
 									<overWrite>true</overWrite>
 									<outputDirectory>../Export</outputDirectory>
-									<destFileName>svc-session.jar</destFileName>
+									<destFileName>SessionService.jar</destFileName>
 								</artifactItem>
 							</artifactItems>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin> -->	
+			</plugin>
 
 		</plugins>
 	</build>

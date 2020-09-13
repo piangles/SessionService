@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JAR_FILE=svc-session.jar
+JAR_FILE=SessionService.jar
 PROCESS_NAME=SessionManagementService
 
 function printUsage {
