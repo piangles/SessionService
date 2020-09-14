@@ -33,9 +33,6 @@
 			<version>0.1</version>
 		</dependency>
 
-		<!--This is required for runtime when configuration for SessionValidator -->
-		<!-- <dependency> <groupId>com.TBD.backbone.services</groupId> <artifactId>mod-tier0-locator</artifactId> 
-			<version>${mod-tier0-locator-version}</version> <scope>runtime</scope> </dependency> -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
