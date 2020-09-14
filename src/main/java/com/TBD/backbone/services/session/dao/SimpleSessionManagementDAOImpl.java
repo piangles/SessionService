@@ -18,6 +18,7 @@ public class SimpleSessionManagementDAOImpl extends AbstractSessionManagementDAO
 	{
 		super(sessionTimeout);
 		sessionIdMap = new HashMap<>();
+		userIdSessionMap = new HashMap<String, List<String>>();
 	}
 	
 	@Override

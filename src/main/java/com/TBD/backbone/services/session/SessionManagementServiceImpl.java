@@ -46,8 +46,12 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		allowMultipleSessionsPerUser = false;
 		
 		// TODO Populate Predetermined sessionIds from Central Service
-		predeterminedSessionIdMap.put("TODOSessionId", "TODOSessionId");
-		//TODO 
+		predeterminedSessionIdMap.put("LoggingService", "TODOSessionId");
+		predeterminedSessionIdMap.put("UserPreferenceService", "TODOSessionId");
+		predeterminedSessionIdMap.put("GatewayService", "TODOSessionId");
+		predeterminedSessionIdMap.put("AuthenticationService", "TODOSessionId");
+		
+		//TODO Retrieve from Central Client the timeout property
 		long sessionTimeout = 1000 * 60; 
 		sessionManagementDAO = new SimpleSessionManagementDAOImpl(sessionTimeout);
 	}
