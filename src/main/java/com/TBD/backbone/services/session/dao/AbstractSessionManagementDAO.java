@@ -41,6 +41,8 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 	public final boolean doesUserHaveAnExistingSession(String userId) throws DAOException
 	{
 		boolean exists = false;
+		
+		removeAllExpiredSessionDetails(userId);
 		List<String> allUserSessionIds = getAllUserSessionIds(userId);
 
 		if (allUserSessionIds != null)
@@ -65,9 +67,8 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 		SessionDetails sessionDetails = getSessionDetails(sessionId);
 		if (sessionDetails != null && sessionDetails.getUserId().equals(userId))
 		{
-			if (!isSessionActive(sessionDetails))
+			if (!isSessionValid(sessionDetails))
 			{
-				removeSessionDetails(userId, sessionId);
 				sessionDetails = null;
 			}
 		}
@@ -78,7 +79,7 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 		return sessionDetails;
 	}
 
-	protected final boolean isSessionActive(SessionDetails sessionDetails)
+	protected final boolean isSessionValid(SessionDetails sessionDetails)
 	{
 		long currentTime = System.currentTimeMillis();
 		long lastAccessedTime = sessionDetails.getLastAccessedTS().getTime();

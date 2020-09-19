@@ -35,14 +35,38 @@ public class SimpleSessionManagementDAOImpl extends AbstractSessionManagementDAO
 	}
 
 	@Override
+	public synchronized void removeAllExpiredSessionDetails(String userId) throws DAOException
+	{
+		List<String> validSessionIds = new ArrayList<String>();
+		List<String> sessionIds = userIdSessionMap.get(userId);
+		if (sessionIds != null)
+		{
+			SessionDetails sessionDetails = null;
+			for (String sessionId : sessionIds)
+			{
+				sessionDetails = sessionIdMap.get(sessionId);
+				if (!isSessionValid(sessionDetails))
+				{
+					sessionIdMap.remove(sessionId);
+				}
+				else
+				{
+					validSessionIds.add(sessionId);
+				}
+			}
+			userIdSessionMap.put(userId, validSessionIds);
+		}
+	}
+
+	@Override
 	public synchronized void removeSessionDetails(String userId, String sessionId) throws DAOException
 	{
+		sessionIdMap.get(sessionId);
 		List<String> sessionIds = userIdSessionMap.get(userId);
 		if (sessionIds != null)
 		{
 			sessionIds.remove(sessionId);
 		}
-		sessionIdMap.remove(sessionId);
 	}
 
 	@Override
