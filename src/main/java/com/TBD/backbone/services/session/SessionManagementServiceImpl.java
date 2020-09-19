@@ -50,6 +50,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		predeterminedSessionIdMap.put("UserPreferenceService", "TODOSessionId");
 		predeterminedSessionIdMap.put("GatewayService", "TODOSessionId");
 		predeterminedSessionIdMap.put("AuthenticationService", "TODOSessionId");
+		predeterminedSessionIdMap.put("ControlChannelService", "TODOSessionId");
 		
 		//TODO Retrieve from Central Client the timeout property
 		long sessionTimeout = 1000 * 60; 
