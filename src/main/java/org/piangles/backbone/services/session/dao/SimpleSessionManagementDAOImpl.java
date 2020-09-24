@@ -1,9 +1,11 @@
-package com.TBD.backbone.services.session.dao;
+package org.piangles.backbone.services.session.dao;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.piangles.backnone.services.session.cache.CacheAdapter;
 
 import com.TBD.backbone.services.session.SessionDetails;
 import com.TBD.core.dao.DAOException;
@@ -13,6 +15,8 @@ public class SimpleSessionManagementDAOImpl extends AbstractSessionManagementDAO
 	//Only one cache will have SessionDetails the rest just have a reference to SessionId
 	private Map<String, SessionDetails> sessionIdMap = null;
 	private Map<String, List<String>> userIdSessionMap = null;
+	
+	private CacheAdapter cache;
 
 	public SimpleSessionManagementDAOImpl(long sessionTimeout)
 	{
@@ -38,10 +42,23 @@ public class SimpleSessionManagementDAOImpl extends AbstractSessionManagementDAO
 	public synchronized void removeAllExpiredSessionDetails(String userId) throws DAOException
 	{
 		List<String> validSessionIds = new ArrayList<String>();
-		List<String> sessionIds = userIdSessionMap.get(userId);
+		List<String> sessionIds = cache.getAllUserSessionIDs(userId);
 		if (sessionIds != null)
 		{
-			SessionDetails sessionDetails = null;
+			
+			sessionIds.forEach(sid -> {
+				SessionDetails sessionDetails = null;
+				sessionDetails = cache.getSession(sid);
+				if (!isSessionValid(sessionDetails))
+				{
+					sessionIdMap.remove(sessionId);
+				}
+				else
+				{
+					validSessionIds.add(sessionId);
+				}
+				
+			});
 			for (String sessionId : sessionIds)
 			{
 				sessionDetails = sessionIdMap.get(sessionId);
@@ -58,6 +75,7 @@ public class SimpleSessionManagementDAOImpl extends AbstractSessionManagementDAO
 		}
 	}
 
+	//TODO: needs to be implemented
 	@Override
 	public synchronized void removeSessionDetails(String userId, String sessionId) throws DAOException
 	{
@@ -78,12 +96,12 @@ public class SimpleSessionManagementDAOImpl extends AbstractSessionManagementDAO
 	@Override
 	protected synchronized List<String> getAllUserSessionIds(String userId) throws DAOException
 	{
-		return userIdSessionMap.get(userId);
+		return cache.getAllUserSessionIDs(userId);
 	}
 
 	@Override
 	protected synchronized SessionDetails getSessionDetails(String sessionId) throws DAOException
 	{
-		return sessionIdMap.get(sessionId);
+		return cache.getSession(sessionId);
 	}
 }
