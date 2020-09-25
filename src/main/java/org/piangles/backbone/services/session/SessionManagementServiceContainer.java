@@ -1,8 +1,8 @@
-package com.TBD.backbone.services.session;
+package org.piangles.backbone.services.session;
 
-import com.TBD.core.email.EmailSupport;
-import com.TBD.core.services.remoting.AbstractContainer;
-import com.TBD.core.services.remoting.ContainerException;
+import org.piangles.core.email.EmailSupport;
+import org.piangles.core.services.remoting.AbstractContainer;
+import org.piangles.core.services.remoting.ContainerException;
 
 public class SessionManagementServiceContainer extends AbstractContainer
 {

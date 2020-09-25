@@ -2,8 +2,8 @@ package org.piangles.backbone.services.session.dao;
 
 import java.util.List;
 
-import com.TBD.backbone.services.session.SessionDetails;
-import com.TBD.core.dao.DAOException;
+import org.piangles.backbone.services.session.SessionDetails;
+import org.piangles.core.dao.DAOException;
 
 public abstract class AbstractSessionManagementDAO implements SessionManagementDAO
 {
