@@ -1,12 +1,12 @@
-package com.TBD.backbone.services.session.dao;
+package org.piangles.backbone.services.session.dao;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.TBD.backbone.services.session.SessionDetails;
-import com.TBD.core.dao.DAOException;
+import org.piangles.backbone.services.session.SessionDetails;
+import org.piangles.core.dao.DAOException;
 
 public class SimpleSessionManagementDAOImpl extends AbstractSessionManagementDAO
 {

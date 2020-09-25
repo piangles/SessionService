@@ -1,7 +1,7 @@
-package com.TBD.backbone.services.session.dao;
+package org.piangles.backbone.services.session.dao;
 
-import com.TBD.backbone.services.session.SessionDetails;
-import com.TBD.core.dao.DAOException;
+import org.piangles.backbone.services.session.SessionDetails;
+import org.piangles.core.dao.DAOException;
 
 public interface SessionManagementDAO
 {

@@ -1,13 +1,17 @@
-package com.TBD.backbone.services.session;
+package org.piangles.backbone.services.session;
 
 import java.util.HashMap;
 import java.util.UUID;
 
-import com.TBD.backbone.services.Locator;
-import com.TBD.backbone.services.logging.LoggingService;
-import com.TBD.backbone.services.session.dao.SessionManagementDAO;
-import com.TBD.backbone.services.session.dao.SimpleSessionManagementDAOImpl;
-import com.TBD.core.dao.DAOException;
+import org.piangles.backbone.services.session.dao.SessionManagementDAO;
+import org.piangles.backbone.services.session.dao.SimpleSessionManagementDAOImpl;
+
+import org.piangles.backbone.services.Locator;
+import org.piangles.backbone.services.logging.LoggingService;
+import org.piangles.backbone.services.session.SessionDetails;
+import org.piangles.backbone.services.session.SessionManagementException;
+import org.piangles.backbone.services.session.SessionManagementService;
+import org.piangles.core.dao.DAOException;
 
 /**
  * SessionIdProvider will be providing SessionId during RequestCreation.
