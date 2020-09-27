@@ -9,8 +9,6 @@ import org.piangles.backbone.services.session.SessionDetails;
 import com.google.gson.Gson;
 import redis.clients.jedis.Jedis;
 /**
- * @author vamsi
- *
  *Util class that enables in-memory persistence of session data.
  */
 public class CacheAdapter {
@@ -22,7 +20,6 @@ public class CacheAdapter {
 	private List<String> cachedSessions = null;
 	private List<SessionDetails> sessionDetails = null;
 	private static final String SESSIONS = "SESSIONS";
-	private static final String USERS_SESSIONS = "USER_SESSIONS";
 
 	/**
 	 * Instantiate Jedis object and establish connection with redis server
