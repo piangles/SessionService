@@ -6,67 +6,48 @@ import java.util.List;
 import java.util.Map;
 
 import org.piangles.backbone.services.session.SessionDetails;
+import org.piangles.backbone.services.session.cache.CacheAdapter;
 import org.piangles.core.dao.DAOException;
 
 public class SimpleSessionManagementDAOImpl extends AbstractSessionManagementDAO
 {
 	//Only one cache will have SessionDetails the rest just have a reference to SessionId
-	private Map<String, SessionDetails> sessionIdMap = null;
-	private Map<String, List<String>> userIdSessionMap = null;
+
+	private CacheAdapter cache= null;
 
 	public SimpleSessionManagementDAOImpl(long sessionTimeout)
 	{
 		super(sessionTimeout);
-		sessionIdMap = new HashMap<>();
-		userIdSessionMap = new HashMap<String, List<String>>();
 	}
 	
 	@Override
 	public synchronized void storeSessionDetails(SessionDetails sessionDetails) throws DAOException
-	{
-		sessionIdMap.put(sessionDetails.getSessionId(), sessionDetails);
-		List<String> sessionIds = userIdSessionMap.get(sessionDetails.getUserId()); 
-		if (sessionIds == null)
-		{
-			sessionIds = new ArrayList<String>();
-			userIdSessionMap.put(sessionDetails.getUserId(), sessionIds);
-		}
-		sessionIds.add(sessionDetails.getSessionId());
+	{ 
+		cache = new CacheAdapter();
+		cache.addSession(sessionDetails);
 	}
 
 	@Override
 	public synchronized void removeAllExpiredSessionDetails(String userId) throws DAOException
 	{
-		List<String> validSessionIds = new ArrayList<String>();
-		List<String> sessionIds = userIdSessionMap.get(userId);
-		if (sessionIds != null)
-		{
-			SessionDetails sessionDetails = null;
-			for (String sessionId : sessionIds)
+		cache = new CacheAdapter();
+		List<String> sessionIds = cache.getAllUserSessionIDs(userId);
+		sessionIds.forEach(sid -> {
+			SessionDetails session = cache.getSession(sid);
+			if (!isSessionValid(session))
 			{
-				sessionDetails = sessionIdMap.get(sessionId);
-				if (!isSessionValid(sessionDetails))
-				{
-					sessionIdMap.remove(sessionId);
-				}
-				else
-				{
-					validSessionIds.add(sessionId);
-				}
+				cache.removeSession(session.getSessionId(), session.getUserId());
 			}
-			userIdSessionMap.put(userId, validSessionIds);
-		}
+			//no need to add validsessions to sepearte storage as we are having a single list which maintains both valid and invalid sessions
+		});
+		
 	}
 
 	@Override
 	public synchronized void removeSessionDetails(String userId, String sessionId) throws DAOException
 	{
-		sessionIdMap.get(sessionId);
-		List<String> sessionIds = userIdSessionMap.get(userId);
-		if (sessionIds != null)
-		{
-			sessionIds.remove(sessionId);
-		}
+		cache = new CacheAdapter();
+		cache.removeSession(userId, sessionId);
 	}
 
 	@Override
@@ -78,12 +59,14 @@ public class SimpleSessionManagementDAOImpl extends AbstractSessionManagementDAO
 	@Override
 	protected synchronized List<String> getAllUserSessionIds(String userId) throws DAOException
 	{
-		return userIdSessionMap.get(userId);
+		cache = new CacheAdapter();
+		return cache.getAllUserSessionIDs(userId);
 	}
 
 	@Override
 	protected synchronized SessionDetails getSessionDetails(String sessionId) throws DAOException
 	{
-		return sessionIdMap.get(sessionId);
+		cache = new CacheAdapter();
+		return cache.getSession(sessionId);
 	}
 }
