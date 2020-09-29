@@ -20,12 +20,14 @@ public class CacheAdapter {
 	private List<String> cachedSessions = null;
 	private List<SessionDetails> sessionDetails = null;
 	private static final String SESSIONS = "SESSIONS";
+	private static final String HOST = "ec2-3-88-33-144.compute-1.amazonaws.com:6379";
 
 	/**
 	 * Instantiate Jedis object and establish connection with redis server
 	 */
 	public CacheAdapter()
 	{
+		//TODO: If localhost
 		InetAddress host = null;
 		try
 		{
@@ -34,7 +36,8 @@ public class CacheAdapter {
 		{
 			e.printStackTrace();
 		}
-		cache = new Jedis(host.getHostAddress());
+		
+		cache = new Jedis(HOST);
 	}
 
 	/**
