@@ -3,14 +3,10 @@ package org.piangles.backbone.services.session;
 import java.util.HashMap;
 import java.util.UUID;
 
-import org.piangles.backbone.services.session.dao.SessionManagementDAO;
-import org.piangles.backbone.services.session.dao.SimpleSessionManagementDAOImpl;
-
 import org.piangles.backbone.services.Locator;
 import org.piangles.backbone.services.logging.LoggingService;
-import org.piangles.backbone.services.session.SessionDetails;
-import org.piangles.backbone.services.session.SessionManagementException;
-import org.piangles.backbone.services.session.SessionManagementService;
+import org.piangles.backbone.services.session.dao.SessionManagementDAO;
+import org.piangles.backbone.services.session.dao.SimpleSessionManagementDAOImpl;
 import org.piangles.core.dao.DAOException;
 
 /**
@@ -54,7 +50,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		predeterminedSessionIdMap.put("UserPreferenceService", "TODOSessionId");
 		predeterminedSessionIdMap.put("GatewayService", "TODOSessionId");
 		predeterminedSessionIdMap.put("AuthenticationService", "TODOSessionId");
-		predeterminedSessionIdMap.put("ControlChannelService", "TODOSessionId");
+		predeterminedSessionIdMap.put("MessagingService", "TODOSessionId");
 		
 		//TODO Retrieve from Central Client the timeout property
 		long sessionTimeout = 1000 * 60; 
