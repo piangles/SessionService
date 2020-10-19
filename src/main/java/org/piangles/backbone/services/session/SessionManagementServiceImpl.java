@@ -45,12 +45,36 @@ public class SessionManagementServiceImpl implements SessionManagementService
 
 		allowMultipleSessionsPerUser = false;
 		
-		// TODO Populate Predetermined sessionIds from Central Service
+		/**
+		 * SessionService will always have a PassThruSessionValidator any calls to it
+		 * will not have the session validated.
+		 * 
+		 * Tier1 services 
+		 * - CryptoService
+		 * - ConfigService
+		 * get their Configuration from CentralService. So for them to come up they do 
+		 * not need SessionValidation.
+		 * 
+		 * Rest of the services however need SessionValidation for retriving configuration
+		 * and decrypting properties on StartUp. So for that reason there are 
+		 * PredeterminedSessionId. When the rest of the services call for config and cyrpto 
+		 * the SessionValidator calls
+		 * 	> public boolean isValid(String userId, String sessionId) throws SessionManagementException
+		 * 
+		 * with userId being the name of the service and sessionId being null. The
+		 * map below will help bypass the actual validation for the sessionId. It is a map to
+		 * help lookup faster.
+		 * 
+		 * TODO
+		 * Populate Predetermined sessionIds from CentralService instead of hardcoding here.
+		 */
 		predeterminedSessionIdMap.put("LoggingService", "TODOSessionId");
 		predeterminedSessionIdMap.put("UserPreferenceService", "TODOSessionId");
 		predeterminedSessionIdMap.put("GatewayService", "TODOSessionId");
 		predeterminedSessionIdMap.put("AuthenticationService", "TODOSessionId");
 		predeterminedSessionIdMap.put("MessagingService", "TODOSessionId");
+		predeterminedSessionIdMap.put("IdService", "TODOSessionId");
+		predeterminedSessionIdMap.put("UserProfileService", "TODOSessionId");
 		
 		//TODO Retrieve from Central Client the timeout property
 		long sessionTimeout = 1000 * 60; 
@@ -71,6 +95,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			String sessionId = UUID.randomUUID().toString();
 			sessionDetails = new SessionDetails(userId, sessionId);
 
+			logger.info("Register Session for UserId:" + userId + " SessionId:"+sessionId);
+
 			sessionManagementDAO.storeSessionDetails(sessionDetails);
 		}
 		catch (DAOException e)
@@ -89,6 +115,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		boolean valid = false;
 		try
 		{
+			logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
 			String predeterminedSessionId = predeterminedSessionIdMap.get(userId);
 			if (predeterminedSessionId != null && predeterminedSessionId.equals(sessionId))
 			{
@@ -113,6 +140,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	{
 		try
 		{
+			logger.info("Unregister Session for UserId:" + userId + " SessionId:"+sessionId);
 			sessionManagementDAO.removeSessionDetails(userId, sessionId);
 		}
 		catch (DAOException e)
