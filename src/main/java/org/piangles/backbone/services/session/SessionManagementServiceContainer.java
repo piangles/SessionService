@@ -1,6 +1,5 @@
 package org.piangles.backbone.services.session;
 
-import org.piangles.core.email.EmailSupport;
 import org.piangles.core.services.remoting.AbstractContainer;
 import org.piangles.core.services.remoting.ContainerException;
 
@@ -15,6 +14,7 @@ public class SessionManagementServiceContainer extends AbstractContainer
 		}
 		catch (ContainerException e)
 		{
+			//TODO Removed email it should be externally monitored.
 			//EmailSupport.notify(e, e.getMessage());
 			//TODO Log the service could not come up here System.err.Println("")
 			//Log scrappers / Process monitor will pick it up.
