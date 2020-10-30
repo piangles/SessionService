@@ -24,7 +24,7 @@ public class SessionManagementServiceContainer extends AbstractContainer
 
 	public SessionManagementServiceContainer()
 	{
-		super("SessionManagementService");
+		super(SessionManagementService.NAME);
 	}
 	
 	@Override

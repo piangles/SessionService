@@ -1,6 +1,7 @@
 package org.piangles.backbone.services.session;
 
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.piangles.backbone.services.Locator;
@@ -8,6 +9,7 @@ import org.piangles.backbone.services.logging.LoggingService;
 import org.piangles.backbone.services.session.dao.SessionManagementDAO;
 import org.piangles.backbone.services.session.dao.SimpleSessionManagementDAOImpl;
 import org.piangles.core.dao.DAOException;
+import org.piangles.core.util.central.CentralClient;
 
 /**
  * SessionIdProvider will be providing SessionId during RequestCreation.
@@ -33,7 +35,11 @@ import org.piangles.core.dao.DAOException;
  */
 public class SessionManagementServiceImpl implements SessionManagementService
 {
-	//TODO Vamsi - Need POM to be updated to include BackbonServicesLocator
+	private static final String MANAGED_SERVICE = "ManagedService";
+	private static final String PRE_DETERMINED_SESSION_ID = "PredeterminedSessionId";
+	private static final String SESSION_TIMEOUT = "SessionTimeout";
+	private static final String ALLOW_MULTIPLE_SESSIONS = "AllowMultipleSessions";
+	
 	private LoggingService logger = Locator.getInstance().getLoggingService();
 	private HashMap<String, String> predeterminedSessionIdMap = null;
 	private SessionManagementDAO sessionManagementDAO;
@@ -43,8 +49,6 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	{
 		predeterminedSessionIdMap = new HashMap<String, String>();
 
-		allowMultipleSessionsPerUser = false;
-		
 		/**
 		 * SessionService will always have a PassThruSessionValidator any calls to it
 		 * will not have the session validated.
@@ -65,19 +69,54 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		 * map below will help bypass the actual validation for the sessionId. It is a map to
 		 * help lookup faster.
 		 * 
-		 * TODO
-		 * Populate Predetermined sessionIds from CentralService instead of hardcoding here.
 		 */
-		predeterminedSessionIdMap.put("LoggingService", "TODOSessionId");
-		predeterminedSessionIdMap.put("UserPreferenceService", "TODOSessionId");
-		predeterminedSessionIdMap.put("GatewayService", "TODOSessionId");
-		predeterminedSessionIdMap.put("AuthenticationService", "TODOSessionId");
-		predeterminedSessionIdMap.put("MessagingService", "TODOSessionId");
-		predeterminedSessionIdMap.put("IdService", "TODOSessionId");
-		predeterminedSessionIdMap.put("UserProfileService", "TODOSessionId");
+		Properties sessionMgmtProperties = CentralClient.tier1Config(NAME);
+		Properties discoveryProperties = null;
+		int count = 0;
+		while (true)
+		{
+			String serviceName = sessionMgmtProperties.getProperty(MANAGED_SERVICE+count);
+			if (serviceName == null)
+			{
+				break;
+			}
+			discoveryProperties = CentralClient.discover(serviceName);
+			predeterminedSessionIdMap.put(serviceName, discoveryProperties.getProperty(PRE_DETERMINED_SESSION_ID));
+			count++;
+		}
 		
-		//TODO Retrieve from Central Client the timeout property
-		long sessionTimeout = 1000 * 60; 
+		if (predeterminedSessionIdMap.size() == 0)
+		{
+			throw new Exception("There are no PredeterminedSessionId configured.");
+		}
+		
+		String sessionTimeoutAsStr = sessionMgmtProperties.getProperty(SESSION_TIMEOUT);
+		long sessionTimeout;
+		try
+		{
+			sessionTimeout = Integer.parseInt(sessionTimeoutAsStr) * 1000; 
+		}
+		catch(Exception expt)
+		{
+			System.err.println("Could not parse into Integer " + SESSION_TIMEOUT + " property:" + sessionTimeoutAsStr);
+			throw expt;
+		}
+		
+		String allowMultipleSessionsPerUserAsStr = sessionMgmtProperties.getProperty(ALLOW_MULTIPLE_SESSIONS);
+		try
+		{
+			if (allowMultipleSessionsPerUserAsStr == null)
+			{
+				throw new Exception(ALLOW_MULTIPLE_SESSIONS + " is null.");
+			}
+			allowMultipleSessionsPerUser = Boolean.parseBoolean(allowMultipleSessionsPerUserAsStr);
+		}
+		catch(Exception expt)
+		{
+			System.err.println("Could not parse into Boolean " + ALLOW_MULTIPLE_SESSIONS + " property:" + allowMultipleSessionsPerUserAsStr);
+			throw expt;
+		}
+		
 		sessionManagementDAO = new SimpleSessionManagementDAOImpl(sessionTimeout);
 	}
 
@@ -115,7 +154,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		boolean valid = false;
 		try
 		{
-			logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
+			//System.out.println("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
+			//logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
 			String predeterminedSessionId = predeterminedSessionIdMap.get(userId);
 			if (predeterminedSessionId != null && predeterminedSessionId.equals(sessionId))
 			{
