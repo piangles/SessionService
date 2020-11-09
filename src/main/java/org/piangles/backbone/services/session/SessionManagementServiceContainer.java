@@ -7,10 +7,10 @@ public class SessionManagementServiceContainer extends AbstractContainer
 {
 	public static void main(String[] args)
 	{
-		SessionManagementServiceContainer container = new SessionManagementServiceContainer();
+		SessionManagementServiceContainer container = new SessionManagementServiceContainer(args);
 		try
 		{
-			container.performSteps();
+			container.performSteps(args);
 		}
 		catch (ContainerException e)
 		{
@@ -22,7 +22,7 @@ public class SessionManagementServiceContainer extends AbstractContainer
 		}
 	}
 
-	public SessionManagementServiceContainer()
+	public SessionManagementServiceContainer(String[] args)
 	{
 		super(SessionManagementService.NAME);
 	}
