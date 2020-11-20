@@ -186,7 +186,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		boolean valid = false;
 		try
 		{
-			//System.out.println("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
+			System.out.println("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
 			//logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
 			String predeterminedSessionId = predeterminedSessionIdMap.get(userId);
 			if (predeterminedSessionId != null && predeterminedSessionId.equals(sessionId))

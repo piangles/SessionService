@@ -13,7 +13,7 @@ import org.piangles.core.util.central.CentralConfigProvider;
 
 import redis.clients.jedis.Jedis;
 
-//All methods are synchronized 
+//TODO Even for Redis should All methods are synchronized 
 public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 {
 	private static final String USER_ID = "UserId";
@@ -31,43 +31,80 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	
 	public void storeSessionDetails(SessionDetails sessionDetails) throws DAOException
 	{
-		Jedis jedis = redisCache.getCache();
-		jedis.lpush(sessionDetails.getUserId(), sessionDetails.getSessionId());
-		jedis.hmset(sessionDetails.getSessionId(), createMap(sessionDetails));
-		jedis.close();
+		try
+		{
+			Jedis jedis = redisCache.getCache();
+			jedis.lpush(sessionDetails.getUserId(), sessionDetails.getSessionId());
+			jedis.hmset(sessionDetails.getSessionId(), createMap(sessionDetails));
+			jedis.close();
+		}
+		catch(Exception e)
+		{
+			throw new DAOException(e);
+		}
 	}
 
 	public void removeSessionDetails(String userId, String sessionId) throws DAOException
 	{
-		Jedis jedis = redisCache.getCache();
-		jedis.lrem(userId, 1, sessionId);
-		jedis.del(sessionId);
-		jedis.close();
+		try
+		{
+			Jedis jedis = redisCache.getCache();
+			jedis.lrem(userId, 1, sessionId);
+			jedis.del(sessionId);
+			jedis.close();
+		}
+		catch(Exception e)
+		{
+			throw new DAOException(e);
+		}
 	}
 
 	public void updateLastAccessed(String userId, String sessionId) throws DAOException
 	{
-		Jedis jedis = redisCache.getCache();
-		jedis.hset(sessionId, LAST_ACCESSED_TS, "" + System.currentTimeMillis());
-		jedis.close();
+		try
+		{
+			Jedis jedis = redisCache.getCache();
+			jedis.hset(sessionId, LAST_ACCESSED_TS, "" + System.currentTimeMillis());
+			jedis.close();
+		}
+		catch(Exception e)
+		{
+			throw new DAOException(e);
+		}
 	}
 
 	protected List<String> getAllUserSessionIds(String userId) throws DAOException
 	{
 		List<String> sessionIds = null;
-		Jedis jedis = redisCache.getCache();
-		sessionIds = jedis.lrange(userId, 0, 100);
-		jedis.close();
+		try
+		{
+			Jedis jedis = redisCache.getCache();
+			sessionIds = jedis.lrange(userId, 0, 100);
+			jedis.close();
+		}
+		catch(Exception e)
+		{
+			throw new DAOException(e);
+		}
+
 		return sessionIds;
 	}
 
 	protected SessionDetails getSessionDetails(String sessionId) throws DAOException
 	{
 		SessionDetails sessionDetails = null;
-		Jedis jedis = redisCache.getCache();
-		Map<String, String> map = jedis.hgetAll(sessionId);
-		jedis.close();
-		sessionDetails = createSessionDetails(map);
+		try
+		{
+			Jedis jedis = redisCache.getCache();
+			Map<String, String> map = jedis.hgetAll(sessionId);
+			jedis.close();
+
+			sessionDetails = createSessionDetails(map);
+		}
+		catch(Exception e)
+		{
+			throw new DAOException(e);
+		}
 		return sessionDetails;
 	}
 	
@@ -76,18 +113,25 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 		List<String> sessionIds = getAllUserSessionIds(userId);
 		if (sessionIds != null)
 		{
-			Jedis jedis = redisCache.getCache();
-			for (String sessionId : sessionIds)
+			try
 			{
-				SessionDetails sessionDetails = createSessionDetails(jedis.hgetAll(sessionId));
-				
-				if (!isSessionValid(sessionDetails.getLastAccessedTS()))
+				Jedis jedis = redisCache.getCache();
+				for (String sessionId : sessionIds)
 				{
-					jedis.lrem(userId, 1, sessionId);
-					jedis.del(sessionId);
+					SessionDetails sessionDetails = createSessionDetails(jedis.hgetAll(sessionId));
+					
+					if (!isSessionValid(sessionDetails.getLastAccessedTS()))
+					{
+						jedis.lrem(userId, 1, sessionId);
+						jedis.del(sessionId);
+					}
 				}
+				jedis.close();
 			}
-			jedis.close();
+			catch(Exception e)
+			{
+				throw new DAOException(e);
+			}
 		}
 	}
 	
@@ -104,10 +148,15 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	
 	private SessionDetails createSessionDetails(Map<String, String> map)
 	{
-		String userId = map.get(USER_ID);
-		String sessionId = map.get(SESSION_ID);
-		long createdTS = Long.parseLong(map.get(CREATED_TS));
-		long lastAccessedTS = Long.parseLong(map.get(LAST_ACCESSED_TS));
-		return new SessionDetails(userId, sessionId, createdTS, lastAccessedTS);
+		SessionDetails sessionDetails = null;
+		if (map != null && !map.isEmpty())
+		{
+			String userId = map.get(USER_ID);
+			String sessionId = map.get(SESSION_ID);
+			long createdTS = Long.parseLong(map.get(CREATED_TS));
+			long lastAccessedTS = Long.parseLong(map.get(LAST_ACCESSED_TS));
+			sessionDetails = new SessionDetails(userId, sessionId, createdTS, lastAccessedTS);
+		}
+		return sessionDetails;
 	}
 }
