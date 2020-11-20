@@ -6,8 +6,9 @@ import java.util.UUID;
 
 import org.piangles.backbone.services.Locator;
 import org.piangles.backbone.services.logging.LoggingService;
+import org.piangles.backbone.services.session.dao.DistributedCacheDAOImpl;
+import org.piangles.backbone.services.session.dao.InMemoryDAOImpl;
 import org.piangles.backbone.services.session.dao.SessionManagementDAO;
-import org.piangles.backbone.services.session.dao.SimpleSessionManagementDAOImpl;
 import org.piangles.core.dao.DAOException;
 import org.piangles.core.util.central.CentralClient;
 
@@ -39,11 +40,15 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	private static final String PRE_DETERMINED_SESSION_ID = "PredeterminedSessionId";
 	private static final String SESSION_TIMEOUT = "SessionTimeout";
 	private static final String ALLOW_MULTIPLE_SESSIONS = "AllowMultipleSessions";
+	private static final String MAX_SESSION_COUNT = "MaxSessionCount";
+	private static final String DAO_TYPE = "DAOType";
+	private static final String DEFAULT_DAO_TYPE = "DistributedCache";
 	
 	private LoggingService logger = Locator.getInstance().getLoggingService();
 	private HashMap<String, String> predeterminedSessionIdMap = null;
 	private SessionManagementDAO sessionManagementDAO;
 	private boolean allowMultipleSessionsPerUser;
+	private int maxSessiontCountPerUser;
 
 	public SessionManagementServiceImpl() throws Exception
 	{
@@ -116,8 +121,30 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			System.err.println("Could not parse into Boolean " + ALLOW_MULTIPLE_SESSIONS + " property:" + allowMultipleSessionsPerUserAsStr);
 			throw expt;
 		}
-		
-		sessionManagementDAO = new SimpleSessionManagementDAOImpl(sessionTimeout);
+
+		String maxSessiontCountPerUserAsStr = sessionMgmtProperties.getProperty(MAX_SESSION_COUNT);
+		try
+		{
+			if (allowMultipleSessionsPerUser)
+			{
+				maxSessiontCountPerUser = Integer.parseInt(maxSessiontCountPerUserAsStr);
+			}
+		}
+		catch(Exception expt)
+		{
+			System.err.println("Could not parse into Integer " + MAX_SESSION_COUNT + " property:" + maxSessiontCountPerUserAsStr);
+			throw expt;
+		}
+
+		if (DEFAULT_DAO_TYPE.equals(sessionMgmtProperties.getProperty(DAO_TYPE)))
+		{
+			sessionManagementDAO = new DistributedCacheDAOImpl(sessionTimeout);
+		}
+		else
+		{
+			sessionManagementDAO = new InMemoryDAOImpl(sessionTimeout);
+		}
+		System.out.println("Starting SessionManagementService with DAO: " + sessionManagementDAO.getClass());
 	}
 
 	@Override
@@ -126,9 +153,14 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		SessionDetails sessionDetails = null;
 		try
 		{
-			if (!allowMultipleSessionsPerUser && sessionManagementDAO.doesUserHaveAnExistingSession(userId))
+			int existingValidSessionCount = sessionManagementDAO.getExistingValidSessionCount(userId);
+			if (!allowMultipleSessionsPerUser && existingValidSessionCount > 1)
 			{
 				throw new SessionManagementException("User " + userId + " already has an active session.");
+			}
+			else if (allowMultipleSessionsPerUser && existingValidSessionCount >= maxSessiontCountPerUser)
+			{
+				throw new SessionManagementException("User " + userId + " has reached maximum active sessions.");
 			}
 
 			String sessionId = UUID.randomUUID().toString();

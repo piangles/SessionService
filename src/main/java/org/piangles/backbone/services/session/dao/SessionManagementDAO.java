@@ -7,9 +7,6 @@ public interface SessionManagementDAO
 {
 	public void storeSessionDetails(SessionDetails sessionDetails) throws DAOException;
 	
-	//Remove from all caches expired sessions for this User
-	public void removeAllExpiredSessionDetails(String userId) throws DAOException;
-	
 	//Remove from all caches for this user and this sessionId
 	public void removeSessionDetails(String userId, String sessionId) throws DAOException;
 	
@@ -19,5 +16,5 @@ public interface SessionManagementDAO
 	//Touch lastAccessed if session is valid
 	public void updateLastAccessed(String userId, String sessionId) throws DAOException;
 	
-	public boolean doesUserHaveAnExistingSession(String userId) throws DAOException;
+	public int getExistingValidSessionCount(String userId) throws DAOException;
 }

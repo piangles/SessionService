@@ -18,7 +18,7 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 	public final boolean isValid(String userId, String sessionId) throws DAOException
 	{
 		boolean valid = false;
-		SessionDetails sessionDetails = getSessionDetailsById(userId, sessionId);
+		SessionDetails sessionDetails = getSessionDetailsIfValidById(userId, sessionId);
 		if (sessionDetails != null)
 		{
 			valid = true;
@@ -28,46 +28,35 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 	}
 
 	@Override
-	public final void updateLastAccessed(String userId, String sessionId) throws DAOException
+	public final int getExistingValidSessionCount(String userId) throws DAOException
 	{
-		SessionDetails sessionDetails = getSessionDetailsById(userId, sessionId);
-		if (sessionDetails != null)
-		{
-			touch(sessionDetails);
-		}
-	}
-
-	@Override
-	public final boolean doesUserHaveAnExistingSession(String userId) throws DAOException
-	{
-		boolean exists = false;
+		int existingSessionCount = 0;
 		
 		removeAllExpiredSessionDetails(userId);
+		
 		List<String> allUserSessionIds = getAllUserSessionIds(userId);
 
 		if (allUserSessionIds != null)
 		{
-			int validSessionCount = 0;
 			 for (String sessionId : allUserSessionIds)
 			 {
-				 SessionDetails sessionDetails = getSessionDetailsById(userId, sessionId);
+				 SessionDetails sessionDetails = getSessionDetailsIfValidById(userId, sessionId);
 				 if (sessionDetails != null)
 				 {
-					 validSessionCount++;
+					 existingSessionCount++;
 				 }
 			 }
-			 exists = validSessionCount > 0;
 		}
 		
-		return exists;
+		return existingSessionCount;
 	}
-
-	protected final SessionDetails getSessionDetailsById(String userId, String sessionId) throws DAOException
+	
+	protected final SessionDetails getSessionDetailsIfValidById(String userId, String sessionId) throws DAOException
 	{
 		SessionDetails sessionDetails = getSessionDetails(sessionId);
 		if (sessionDetails != null && sessionDetails.getUserId().equals(userId))
 		{
-			if (!isSessionValid(sessionDetails))
+			if (!isSessionValid(sessionDetails.getLastAccessedTS()))
 			{
 				sessionDetails = null;
 			}
@@ -79,14 +68,14 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 		return sessionDetails;
 	}
 
-	protected final boolean isSessionValid(SessionDetails sessionDetails)
+
+	protected final boolean isSessionValid(long lastAccessedTS)
 	{
-		long currentTime = System.currentTimeMillis();
-		long lastAccessedTime = sessionDetails.getLastAccessedTS().getTime();
-		return ((currentTime - lastAccessedTime) < sessionTimeout);
+		return ((System.currentTimeMillis() - lastAccessedTS) < sessionTimeout);
 	}
 
-	protected abstract void touch(SessionDetails sessionDetails) throws DAOException;
 	protected abstract List<String> getAllUserSessionIds(String userId) throws DAOException;
 	protected abstract SessionDetails getSessionDetails(String sessionId) throws DAOException;
+	//Remove from all caches expired sessions for this User
+	protected abstract void removeAllExpiredSessionDetails(String userId) throws DAOException;
 }
