@@ -37,7 +37,7 @@ import org.piangles.core.util.central.CentralClient;
 public class SessionManagementServiceImpl implements SessionManagementService
 {
 	private static final String MANAGED_SERVICE = "ManagedService";
-	private static final String PRE_DETERMINED_SESSION_ID = "PredeterminedSessionId";
+	private static final String PRE_APPROVED_SESSION_ID = "PreApprovedSessionId";
 	private static final String SESSION_TIMEOUT = "SessionTimeout";
 	private static final String ALLOW_MULTIPLE_SESSIONS = "AllowMultipleSessions";
 	private static final String MAX_SESSION_COUNT = "MaxSessionCount";
@@ -66,7 +66,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		 * 
 		 * Rest of the services however need SessionValidation for retriving configuration
 		 * and decrypting properties on StartUp. So for that reason there are 
-		 * PredeterminedSessionId. When the rest of the services call for config and cyrpto 
+		 * PreApprovedSessionId. When the rest of the services call for config and cyrpto 
 		 * the SessionValidator calls
 		 * 	> public boolean isValid(String userId, String sessionId) throws SessionManagementException
 		 * 
@@ -85,14 +85,15 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			{
 				break;
 			}
+			System.out.println("Looking up for " + PRE_APPROVED_SESSION_ID + " for service: " + serviceName);
 			discoveryProperties = CentralClient.discover(serviceName);
-			predeterminedSessionIdMap.put(serviceName, discoveryProperties.getProperty(PRE_DETERMINED_SESSION_ID));
+			predeterminedSessionIdMap.put(serviceName, discoveryProperties.getProperty(PRE_APPROVED_SESSION_ID));
 			count++;
 		}
 		
 		if (predeterminedSessionIdMap.size() == 0)
 		{
-			throw new Exception("There are no PredeterminedSessionId configured.");
+			throw new Exception("There are no PreApprovedSessionId configured.");
 		}
 		
 		String sessionTimeoutAsStr = sessionMgmtProperties.getProperty(SESSION_TIMEOUT);
@@ -188,8 +189,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		{
 			System.out.println("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
 			//logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
-			String predeterminedSessionId = predeterminedSessionIdMap.get(userId);
-			if (predeterminedSessionId != null && predeterminedSessionId.equals(sessionId))
+			String preApprovedSessionId = predeterminedSessionIdMap.get(userId);
+			if (preApprovedSessionId != null && preApprovedSessionId.equals(sessionId))
 			{
 				valid = true;
 			}
