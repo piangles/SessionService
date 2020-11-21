@@ -9,7 +9,7 @@ import org.piangles.backbone.services.session.SessionManagementService;
 import org.piangles.core.dao.DAOException;
 import org.piangles.core.resources.RedisCache;
 import org.piangles.core.resources.ResourceManager;
-import org.piangles.core.util.BoundedOp;
+import org.piangles.core.util.abstractions.BoundedOp;
 import org.piangles.core.util.central.CentralConfigProvider;
 
 import redis.clients.jedis.Jedis;
