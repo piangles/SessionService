@@ -9,6 +9,7 @@ import org.piangles.backbone.services.session.SessionManagementService;
 import org.piangles.core.dao.DAOException;
 import org.piangles.core.resources.RedisCache;
 import org.piangles.core.resources.ResourceManager;
+import org.piangles.core.util.BoundedOp;
 import org.piangles.core.util.central.CentralConfigProvider;
 
 import redis.clients.jedis.Jedis;
@@ -31,80 +32,46 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	
 	public void storeSessionDetails(SessionDetails sessionDetails) throws DAOException
 	{
-		try
-		{
-			Jedis jedis = redisCache.getCache();
+		execute((jedis) -> {
 			jedis.lpush(sessionDetails.getUserId(), sessionDetails.getSessionId());
 			jedis.hmset(sessionDetails.getSessionId(), createMap(sessionDetails));
-			jedis.close();
-		}
-		catch(Exception e)
-		{
-			throw new DAOException(e);
-		}
+			return null;
+		});
 	}
 
 	public void removeSessionDetails(String userId, String sessionId) throws DAOException
 	{
-		try
-		{
-			Jedis jedis = redisCache.getCache();
+		execute((jedis) -> {
 			jedis.lrem(userId, 1, sessionId);
 			jedis.del(sessionId);
-			jedis.close();
-		}
-		catch(Exception e)
-		{
-			throw new DAOException(e);
-		}
+			return null;
+		});
 	}
 
 	public void updateLastAccessed(String userId, String sessionId) throws DAOException
 	{
-		try
-		{
-			Jedis jedis = redisCache.getCache();
+		execute((jedis) -> {
 			jedis.hset(sessionId, LAST_ACCESSED_TS, "" + System.currentTimeMillis());
-			jedis.close();
-		}
-		catch(Exception e)
-		{
-			throw new DAOException(e);
-		}
+			return null;
+		});
 	}
 
 	protected List<String> getAllUserSessionIds(String userId) throws DAOException
 	{
-		List<String> sessionIds = null;
-		try
-		{
-			Jedis jedis = redisCache.getCache();
-			sessionIds = jedis.lrange(userId, 0, 100);
-			jedis.close();
-		}
-		catch(Exception e)
-		{
-			throw new DAOException(e);
-		}
+		List<String> sessionIds = execute((jedis) -> {
+			 return jedis.lrange(userId, 0, 100);
+		});
 
 		return sessionIds;
 	}
 
 	protected SessionDetails getSessionDetails(String sessionId) throws DAOException
 	{
-		SessionDetails sessionDetails = null;
-		try
-		{
-			Jedis jedis = redisCache.getCache();
+		SessionDetails sessionDetails = execute((jedis) -> {
 			Map<String, String> map = jedis.hgetAll(sessionId);
-			jedis.close();
-
-			sessionDetails = createSessionDetails(map);
-		}
-		catch(Exception e)
-		{
-			throw new DAOException(e);
-		}
+			SessionDetails sd = createSessionDetails(map);
+			return sd;
+		});
 		return sessionDetails;
 	}
 	
@@ -113,9 +80,7 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 		List<String> sessionIds = getAllUserSessionIds(userId);
 		if (sessionIds != null)
 		{
-			try
-			{
-				Jedis jedis = redisCache.getCache();
+			execute((jedis) -> {
 				for (String sessionId : sessionIds)
 				{
 					SessionDetails sessionDetails = createSessionDetails(jedis.hgetAll(sessionId));
@@ -126,12 +91,8 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 						jedis.del(sessionId);
 					}
 				}
-				jedis.close();
-			}
-			catch(Exception e)
-			{
-				throw new DAOException(e);
-			}
+				return null;
+			});
 		}
 	}
 	
@@ -158,5 +119,26 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 			sessionDetails = new SessionDetails(userId, sessionId, createdTS, lastAccessedTS);
 		}
 		return sessionDetails;
+	}
+	
+	private <R> R execute(BoundedOp<Jedis, R> op) throws DAOException
+	{
+		Jedis jedis = null;
+		try
+		{
+			jedis = redisCache.getCache();
+			return op.perform(jedis);
+		}
+		catch(Exception e)
+		{
+			throw new DAOException(e);
+		}
+		finally
+		{
+			if (jedis != null)
+			{
+				jedis.close();
+			}
+		}
 	}
 }
