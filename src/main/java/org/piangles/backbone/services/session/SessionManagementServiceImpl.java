@@ -81,13 +81,20 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		while (true)
 		{
 			String serviceName = sessionMgmtProperties.getProperty(MANAGED_SERVICE+count);
-			if (serviceName == null)
+			/**
+			 * Count 0 is reserved for FeaturesTestService, this needs to be disabled in
+			 * production. And if disabled the count starts from 1 for the actual services.
+			 */
+			if (serviceName == null && count != 0)
 			{
 				break;
 			}
-			System.out.println("Looking up for " + PRE_APPROVED_SESSION_ID + " for service: " + serviceName);
-			discoveryProperties = CentralClient.discover(serviceName);
-			predeterminedSessionIdMap.put(serviceName, discoveryProperties.getProperty(PRE_APPROVED_SESSION_ID));
+			else if (serviceName != null)
+			{
+				System.out.println("Looking up for " + PRE_APPROVED_SESSION_ID + " for service: " + serviceName);
+				discoveryProperties = CentralClient.discover(serviceName);
+				predeterminedSessionIdMap.put(serviceName, discoveryProperties.getProperty(PRE_APPROVED_SESSION_ID));
+			}
 			count++;
 		}
 		
