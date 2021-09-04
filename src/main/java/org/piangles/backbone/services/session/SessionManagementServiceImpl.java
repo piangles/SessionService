@@ -110,7 +110,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			}
 			else if (serviceName != null)
 			{
-				System.out.println("Looking up for " + PRE_APPROVED_SESSION_ID + " for service: " + serviceName);
+				logger.info("Looking up for " + PRE_APPROVED_SESSION_ID + " for service: " + serviceName);
 				discoveryProperties = CentralClient.getInstance().discover(serviceName);
 				predeterminedSessionIdMap.put(serviceName, discoveryProperties.getProperty(PRE_APPROVED_SESSION_ID));
 			}
@@ -171,7 +171,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		{
 			sessionManagementDAO = new InMemoryDAOImpl(sessionTimeout);
 		}
-		System.out.println("Starting SessionManagementService with DAO: " + sessionManagementDAO.getClass());
+		logger.info("Starting SessionManagementService with DAO: " + sessionManagementDAO.getClass());
 	}
 
 	@Override
@@ -213,8 +213,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		boolean valid = false;
 		try
 		{
-			System.out.println("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
-			//logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
+			logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
 			String preApprovedSessionId = predeterminedSessionIdMap.get(userId);
 			if (preApprovedSessionId != null && preApprovedSessionId.equals(sessionId))
 			{
