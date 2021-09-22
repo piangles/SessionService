@@ -84,7 +84,7 @@ public final class InMemoryDAOImpl extends AbstractSessionManagementDAO
 	}
 
 	@Override
-	protected synchronized SessionDetails getSessionDetails(String sessionId) throws DAOException
+	protected synchronized SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException
 	{
 		return sessionIdMap.get(sessionId);
 	}

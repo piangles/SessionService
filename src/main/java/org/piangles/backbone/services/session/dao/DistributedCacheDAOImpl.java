@@ -33,14 +33,27 @@ import org.piangles.core.util.central.CentralConfigProvider;
 
 import redis.clients.jedis.Jedis;
 
-//TODO Even for Redis should All methods are synchronized 
 public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 {
+	private static final String REDIS_USER2SESSION_ID = "user:%s:session:id";
+	private static final String REDIS_USER2SESSION_DETAILS = "user:%s:session:details:%s";
+	
 	private static final String USER_ID = "UserId";
 	private static final String SESSION_ID = "SessionId";
 	private static final String CREATED_TS = "CreatedTS";
 	private static final String LAST_ACCESSED_TS = "LastAccessedTS";
 	
+	/**
+	 * The reason we are using Redis Lists and Map for saving Session related information
+	 * is : SesssionManagementService allows for a user to have multiple sessions. So given
+	 * a User we need to identify all the sessions, hence the User->SessionId is stored is a List.
+	 * And the most efficient way to save SessionDetails is to break it down into NV Paid Vs
+	 * saving it as JSON Objects. 
+	 * 
+	 * Saving it as JSON gives the additional challenege of having to deseralize the entire JSON Object 
+	 * and specifically update LastAccessedTS and put it back into Cache.
+	 * 
+	 */
 	private RedisCache redisCache = null;
 	
 	public DistributedCacheDAOImpl(long sessionTimeout) throws Exception
@@ -49,51 +62,57 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 		redisCache = ResourceManager.getInstance().getRedisCache(new CentralConfigProvider(SessionManagementService.NAME, SessionManagementService.NAME));
 	}
 	
+	@Override
 	public void storeSessionDetails(SessionDetails sessionDetails) throws DAOException
 	{
 		execute((jedis) -> {
-			jedis.lpush(sessionDetails.getUserId(), sessionDetails.getSessionId());
-			jedis.hmset(sessionDetails.getSessionId(), createMap(sessionDetails));
+			jedis.lpush(createUser2SessionIdKey(sessionDetails.getUserId()), sessionDetails.getSessionId());
+			jedis.hmset(createUser2SessionDetailsKey(sessionDetails.getUserId(), sessionDetails.getSessionId()), createMap(sessionDetails));
 			return null;
 		});
 	}
 
+	@Override
 	public void removeSessionDetails(String userId, String sessionId) throws DAOException
 	{
 		execute((jedis) -> {
-			jedis.lrem(userId, 1, sessionId);
-			jedis.del(sessionId);
+			jedis.lrem(createUser2SessionIdKey(userId), 1, sessionId);
+			jedis.del(createUser2SessionDetailsKey(userId, sessionId));
 			return null;
 		});
 	}
 
+	@Override
 	public void updateLastAccessed(String userId, String sessionId) throws DAOException
 	{
 		execute((jedis) -> {
-			jedis.hset(sessionId, LAST_ACCESSED_TS, "" + System.currentTimeMillis());
+			jedis.hset(createUser2SessionDetailsKey(userId, sessionId), LAST_ACCESSED_TS, "" + System.currentTimeMillis());
 			return null;
 		});
 	}
 
+	@Override
 	protected List<String> getAllUserSessionIds(String userId) throws DAOException
 	{
 		List<String> sessionIds = execute((jedis) -> {
-			 return jedis.lrange(userId, 0, 100);
+			 return jedis.lrange(createUser2SessionIdKey(userId), 0, 100);
 		});
 
 		return sessionIds;
 	}
 
-	protected SessionDetails getSessionDetails(String sessionId) throws DAOException
+	@Override
+	protected SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException
 	{
 		SessionDetails sessionDetails = execute((jedis) -> {
-			Map<String, String> map = jedis.hgetAll(sessionId);
+			Map<String, String> map = jedis.hgetAll(createUser2SessionDetailsKey(userId, sessionId));
 			SessionDetails sd = createSessionDetails(map);
 			return sd;
 		});
 		return sessionDetails;
 	}
 	
+	@Override
 	protected void removeAllExpiredSessionDetails(String userId) throws DAOException
 	{
 		List<String> sessionIds = getAllUserSessionIds(userId);
@@ -102,12 +121,12 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 			execute((jedis) -> {
 				for (String sessionId : sessionIds)
 				{
-					SessionDetails sessionDetails = createSessionDetails(jedis.hgetAll(sessionId));
+					SessionDetails sessionDetails = createSessionDetails(jedis.hgetAll(createUser2SessionDetailsKey(userId, sessionId)));
 					
 					if (!isSessionValid(sessionDetails.getLastAccessedTS()))
 					{
-						jedis.lrem(userId, 1, sessionId);
-						jedis.del(sessionId);
+						jedis.lrem(createUser2SessionIdKey(userId), 1, sessionId);
+						jedis.del(createUser2SessionDetailsKey(userId, sessionId));
 					}
 				}
 				return null;
@@ -159,5 +178,15 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 				jedis.close();
 			}
 		}
+	}
+	
+	private String createUser2SessionIdKey(String userId)
+	{
+		return String.format(REDIS_USER2SESSION_ID, userId);
+	}
+	
+	private String createUser2SessionDetailsKey(String userId, String sessionId)
+	{
+		return String.format(REDIS_USER2SESSION_DETAILS, userId, sessionId);
 	}
 }
