@@ -72,7 +72,7 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 	
 	protected final SessionDetails getSessionDetailsIfValidById(String userId, String sessionId) throws DAOException
 	{
-		SessionDetails sessionDetails = getSessionDetails(sessionId);
+		SessionDetails sessionDetails = getSessionDetails(userId, sessionId);
 		if (sessionDetails != null && sessionDetails.getUserId().equals(userId))
 		{
 			if (!isSessionValid(sessionDetails.getLastAccessedTS()))
@@ -94,7 +94,7 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 	}
 
 	protected abstract List<String> getAllUserSessionIds(String userId) throws DAOException;
-	protected abstract SessionDetails getSessionDetails(String sessionId) throws DAOException;
+	protected abstract SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException;
 	//Remove from all caches expired sessions for this User
 	protected abstract void removeAllExpiredSessionDetails(String userId) throws DAOException;
 }
