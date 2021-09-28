@@ -67,6 +67,7 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	{
 		execute((jedis) -> {
 			jedis.lpush(createUser2SessionIdKey(sessionDetails.getUserId()), sessionDetails.getSessionId());
+			jedis.expire(key, seconds);
 			jedis.hmset(createUser2SessionDetailsKey(sessionDetails.getUserId(), sessionDetails.getSessionId()), createMap(sessionDetails));
 			return null;
 		});
@@ -86,6 +87,7 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	public void updateLastAccessed(String userId, String sessionId) throws DAOException
 	{
 		execute((jedis) -> {
+			jedis.expire(key, seconds)
 			jedis.hset(createUser2SessionDetailsKey(userId, sessionId), LAST_ACCESSED_TS, "" + System.currentTimeMillis());
 			return null;
 		});
