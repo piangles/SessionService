@@ -58,6 +58,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	private static final String MANAGED_SERVICE = "ManagedService";
 	private static final String PRE_APPROVED_SESSION_ID = "PreApprovedSessionId";
 	private static final String SESSION_TIMEOUT = "SessionTimeout";
+	private static final String MARK_SESSION_TIMEOUT = "MarkSessionTimeout";
 	private static final String ALLOW_MULTIPLE_SESSIONS = "AllowMultipleSessions";
 	private static final String MAX_SESSION_COUNT = "MaxSessionCount";
 	private static final String DAO_TYPE = "DAOType";
@@ -123,10 +124,13 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		}
 		
 		String sessionTimeoutAsStr = sessionMgmtProperties.getProperty(SESSION_TIMEOUT);
+		String markSessionTimeoutAsStr = sessionMgmtProperties.getProperty(MARK_SESSION_TIMEOUT);
 		long sessionTimeout;
+		int markSessionTimeout;
 		try
 		{
-			sessionTimeout = Integer.parseInt(sessionTimeoutAsStr) * 1000; 
+			sessionTimeout = Integer.parseInt(sessionTimeoutAsStr) * 1000;
+			markSessionTimeout = Integer.parseInt(markSessionTimeoutAsStr);
 		}
 		catch(Exception expt)
 		{
@@ -165,11 +169,11 @@ public class SessionManagementServiceImpl implements SessionManagementService
 
 		if (DEFAULT_DAO_TYPE.equals(sessionMgmtProperties.getProperty(DAO_TYPE)))
 		{
-			sessionManagementDAO = new DistributedCacheDAOImpl(sessionTimeout);
+			sessionManagementDAO = new DistributedCacheDAOImpl(sessionTimeout, markSessionTimeout);
 		}
 		else
 		{
-			sessionManagementDAO = new InMemoryDAOImpl(sessionTimeout);
+			sessionManagementDAO = new InMemoryDAOImpl(sessionTimeout, markSessionTimeout);
 		}
 		logger.info("Starting SessionManagementService with DAO: " + sessionManagementDAO.getClass());
 	}
@@ -244,6 +248,22 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		catch (DAOException e)
 		{
 			String message = "Unable to unregister session because of : " + e.getMessage();
+			logger.error(message, e);
+			throw new SessionManagementException(message);
+		}
+	}
+
+	@Override
+	public void markForUnregister(String userId, String sessionId) throws SessionManagementException
+	{
+		try
+		{
+			logger.info("Marking for Unregister Session for UserId:" + userId + " SessionId:"+sessionId);
+			sessionManagementDAO.markForRemoveSessionDetails(userId, sessionId);
+		}
+		catch (DAOException e)
+		{
+			String message = "Unable to markForUnregister session because of : " + e.getMessage();
 			logger.error(message, e);
 			throw new SessionManagementException(message);
 		}

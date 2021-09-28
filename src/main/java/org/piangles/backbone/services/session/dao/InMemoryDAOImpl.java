@@ -33,9 +33,9 @@ public final class InMemoryDAOImpl extends AbstractSessionManagementDAO
 	private Map<String, SessionDetails> sessionIdMap = null;
 	private Map<String, List<String>> userIdSessionMap = null;
 
-	public InMemoryDAOImpl(long sessionTimeout) throws Exception
+	public InMemoryDAOImpl(long sessionTimeout, int markSessionTimeout) throws Exception
 	{
-		super(sessionTimeout);
+		super(sessionTimeout, markSessionTimeout);
 		sessionIdMap = new HashMap<>();
 		userIdSessionMap = new HashMap<String, List<String>>();
 	}
@@ -65,6 +65,12 @@ public final class InMemoryDAOImpl extends AbstractSessionManagementDAO
 			sessionIds.remove(sessionId);
 			sessionIdMap.remove(sessionId);
 		}
+	}
+	
+	@Override
+	public void markForRemoveSessionDetails(String userId, String sessionId) throws DAOException
+	{
+		
 	}
 
 	@Override

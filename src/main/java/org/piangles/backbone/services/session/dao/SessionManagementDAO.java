@@ -29,6 +29,8 @@ public interface SessionManagementDAO
 	//Remove from all caches for this user and this sessionId
 	public void removeSessionDetails(String userId, String sessionId) throws DAOException;
 	
+	public void markForRemoveSessionDetails(String userId, String sessionId) throws DAOException;
+	
 	//Returns true if session exists else false and if it exists will update the lastAccessedTS
 	public boolean isValid(String userId, String sessionId) throws DAOException;
 	

@@ -27,10 +27,12 @@ import org.piangles.core.dao.DAOException;
 public abstract class AbstractSessionManagementDAO implements SessionManagementDAO
 {
 	private long sessionTimeout;
+	private int markSessionTimeout;
 
-	public AbstractSessionManagementDAO(long sessionTimeout)
+	public AbstractSessionManagementDAO(long sessionTimeout, int markSessionTimeout)
 	{
 		this.sessionTimeout = sessionTimeout;
+		this.markSessionTimeout = markSessionTimeout;
 	}
 	
 	@Override
@@ -91,6 +93,16 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 	protected final boolean isSessionValid(long lastAccessedTS)
 	{
 		return ((System.currentTimeMillis() - lastAccessedTS) < sessionTimeout);
+	}
+	
+	protected final long getSessionTimeout()
+	{
+		return sessionTimeout;
+	}
+
+	protected final int getMarkSessionTimeout()
+	{
+		return markSessionTimeout;
 	}
 
 	protected abstract List<String> getAllUserSessionIds(String userId) throws DAOException;
