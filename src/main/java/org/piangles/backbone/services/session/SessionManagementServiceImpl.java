@@ -184,6 +184,10 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		SessionDetails sessionDetails = null;
 		try
 		{
+			if (StringUtils.isBlank(userId))
+			{
+				throw new ValidationException("Invalid userId. UserId cannot be empty or null.");
+			}
 			int existingValidSessionCount = sessionManagementDAO.getExistingValidSessionCount(userId);
 			if (!allowMultipleSessionsPerUser && existingValidSessionCount > 1)
 			{
