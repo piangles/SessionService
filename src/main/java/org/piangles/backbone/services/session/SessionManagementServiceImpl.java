@@ -23,12 +23,14 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.piangles.backbone.services.Locator;
 import org.piangles.backbone.services.logging.LoggingService;
 import org.piangles.backbone.services.session.dao.DistributedCacheDAOImpl;
 import org.piangles.backbone.services.session.dao.InMemoryDAOImpl;
 import org.piangles.backbone.services.session.dao.SessionManagementDAO;
 import org.piangles.core.dao.DAOException;
+import org.piangles.core.expt.ValidationException;
 import org.piangles.core.util.central.CentralClient;
 
 /**
@@ -182,12 +184,15 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	public SessionDetails register(String userId) throws SessionManagementException
 	{
 		SessionDetails sessionDetails = null;
+		
+		logger.info("Registering Session for UserId:" + userId);
+		if (StringUtils.isBlank(userId))
+		{
+			throw new ValidationException("Invalid userId. UserId cannot be empty or null.");
+		}
+
 		try
 		{
-			if (StringUtils.isBlank(userId))
-			{
-				throw new ValidationException("Invalid userId. UserId cannot be empty or null.");
-			}
 			int existingValidSessionCount = sessionManagementDAO.getExistingValidSessionCount(userId);
 			if (!allowMultipleSessionsPerUser && existingValidSessionCount > 1)
 			{
@@ -201,7 +206,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			String sessionId = UUID.randomUUID().toString();
 			sessionDetails = new SessionDetails(userId, sessionId);
 
-			logger.info("Register Session for UserId:" + userId + " SessionId:"+sessionId);
+			logger.info("Registered Session for UserId:" + userId + " SessionId:"+sessionId);
 
 			sessionManagementDAO.storeSessionDetails(sessionDetails);
 		}
@@ -219,9 +224,15 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	public boolean isValid(String userId, String sessionId) throws SessionManagementException
 	{
 		boolean valid = false;
+	
+		logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
+		if (StringUtils.isAnyBlank(userId, sessionId))
+		{
+			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
+		}
+
 		try
 		{
-			logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
 			String preApprovedSessionId = predeterminedSessionIdMap.get(userId);
 			if (preApprovedSessionId != null && preApprovedSessionId.equals(sessionId))
 			{
@@ -244,9 +255,14 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	@Override
 	public void unregister(String userId, String sessionId) throws SessionManagementException
 	{
+		logger.info("Unregister Session for UserId:" + userId + " SessionId:"+sessionId);
+		if (StringUtils.isAnyBlank(userId, sessionId))
+		{
+			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
+		}
+
 		try
 		{
-			logger.info("Unregister Session for UserId:" + userId + " SessionId:"+sessionId);
 			sessionManagementDAO.removeSessionDetails(userId, sessionId);
 		}
 		catch (DAOException e)
@@ -260,9 +276,14 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	@Override
 	public void markForUnregister(String userId, String sessionId) throws SessionManagementException
 	{
+		logger.info("Marking for Unregister Session for UserId:" + userId + " SessionId:"+sessionId);
+		if (StringUtils.isAnyBlank(userId, sessionId))
+		{
+			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
+		}
+
 		try
 		{
-			logger.info("Marking for Unregister Session for UserId:" + userId + " SessionId:"+sessionId);
 			sessionManagementDAO.markForRemoveSessionDetails(userId, sessionId);
 		}
 		catch (DAOException e)
@@ -276,6 +297,12 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	@Override
 	public void makeLastAccessedCurrent(String userId, String sessionId) throws SessionManagementException
 	{
+		logger.info("Making LastAccessedCurrent Session for UserId:" + userId + " SessionId:"+sessionId);
+		if (StringUtils.isAnyBlank(userId, sessionId))
+		{
+			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
+		}
+
 		try
 		{
 			sessionManagementDAO.updateLastAccessed(userId, sessionId);

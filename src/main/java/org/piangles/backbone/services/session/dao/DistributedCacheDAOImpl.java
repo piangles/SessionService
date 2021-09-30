@@ -27,6 +27,7 @@ import org.piangles.backbone.services.session.SessionDetails;
 import org.piangles.backbone.services.session.SessionManagementService;
 import org.piangles.core.dao.DAOException;
 import org.piangles.core.resources.RedisCache;
+import org.piangles.core.resources.ResourceException;
 import org.piangles.core.resources.ResourceManager;
 import org.piangles.core.util.central.CentralConfigProvider;
 
@@ -62,49 +63,85 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	@Override
 	public void storeSessionDetails(SessionDetails sessionDetails) throws DAOException
 	{
-		redisCache.execute((jedis) -> {
-			jedis.lpush(createUser2SessionIdKey(sessionDetails.getUserId()), sessionDetails.getSessionId());
-			jedis.hmset(createUser2SessionDetailsKey(sessionDetails.getUserId(), sessionDetails.getSessionId()), createMap(sessionDetails));
-			return null;
-		});
+		try
+		{
+			redisCache.execute((jedis) -> {
+				jedis.lpush(createUser2SessionIdKey(sessionDetails.getUserId()), sessionDetails.getSessionId());
+				jedis.hmset(createUser2SessionDetailsKey(sessionDetails.getUserId(), sessionDetails.getSessionId()), createMap(sessionDetails));
+				return null;
+			});
+		}
+		catch (ResourceException e)
+		{
+			throw new DAOException(e);
+		}
 	}
 
 	@Override
 	public void removeSessionDetails(String userId, String sessionId) throws DAOException
 	{
-		redisCache.execute((jedis) -> {
-			jedis.lrem(createUser2SessionIdKey(userId), 1, sessionId);
-			jedis.del(createUser2SessionDetailsKey(userId, sessionId));
-			return null;
-		});
+		try
+		{
+			redisCache.execute((jedis) -> {
+				jedis.lrem(createUser2SessionIdKey(userId), 1, sessionId);
+				jedis.del(createUser2SessionDetailsKey(userId, sessionId));
+				return null;
+			});
+		}
+		catch (ResourceException e)
+		{
+			throw new DAOException(e);
+		}
 	}
 
 	@Override
 	public void markForRemoveSessionDetails(String userId, String sessionId) throws DAOException
 	{
-		redisCache.execute((jedis) -> {
-			jedis.expire(createUser2SessionDetailsKey(userId, sessionId), getMarkSessionTimeout());
-			return null;
-		});
+		try
+		{
+			redisCache.execute((jedis) -> {
+				jedis.expire(createUser2SessionDetailsKey(userId, sessionId), getMarkSessionTimeout());
+				return null;
+			});
+		}
+		catch (ResourceException e)
+		{
+			throw new DAOException(e);
+		}
 	}
 	
 	@Override
 	public void updateLastAccessed(String userId, String sessionId) throws DAOException
 	{
-		redisCache.execute((jedis) -> {
-			String key = createUser2SessionDetailsKey(userId, sessionId);
-			jedis.hset(key, LAST_ACCESSED_TS, "" + System.currentTimeMillis());
-			jedis.persist(key);//Remove Expiry in case it was set.
-			return null;
-		});
+		try
+		{
+			redisCache.execute((jedis) -> {
+				String key = createUser2SessionDetailsKey(userId, sessionId);
+				jedis.hset(key, LAST_ACCESSED_TS, "" + System.currentTimeMillis());
+				jedis.persist(key);//Remove Expiry in case it was set.
+				return null;
+			});
+		}
+		catch (ResourceException e)
+		{
+			throw new DAOException(e);
+		}
 	}
 
 	@Override
 	protected List<String> getAllUserSessionIds(String userId) throws DAOException
 	{
-		List<String> sessionIds = redisCache.execute((jedis) -> {
-			 return jedis.lrange(createUser2SessionIdKey(userId), 0, 100);
-		});
+		List<String> sessionIds;
+		try
+		{
+			sessionIds = redisCache.execute((jedis) -> {
+				 return jedis.lrange(createUser2SessionIdKey(userId), 0, 100);
+			});
+		}
+		catch (ResourceException e)
+		{
+			throw new DAOException(e);
+		}
 
 		return sessionIds;
 	}
@@ -112,11 +149,19 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	@Override
 	protected SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException
 	{
-		SessionDetails sessionDetails = redisCache.execute((jedis) -> {
-			Map<String, String> map = jedis.hgetAll(createUser2SessionDetailsKey(userId, sessionId));
-			SessionDetails sd = createSessionDetails(map);
-			return sd;
-		});
+		SessionDetails sessionDetails;
+		try
+		{
+			sessionDetails = redisCache.execute((jedis) -> {
+				Map<String, String> map = jedis.hgetAll(createUser2SessionDetailsKey(userId, sessionId));
+				SessionDetails sd = createSessionDetails(map);
+				return sd;
+			});
+		}
+		catch (ResourceException e)
+		{
+			throw new DAOException(e);
+		}
 		return sessionDetails;
 	}
 	
@@ -126,23 +171,30 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 		List<String> sessionIds = getAllUserSessionIds(userId);
 		if (sessionIds != null)
 		{
-			redisCache.execute((jedis) -> {
-				for (String sessionId : sessionIds)
-				{
-					SessionDetails sessionDetails = createSessionDetails(jedis.hgetAll(createUser2SessionDetailsKey(userId, sessionId)));
-					
-					if (sessionDetails == null)
+			try
+			{
+				redisCache.execute((jedis) -> {
+					for (String sessionId : sessionIds)
 					{
-						jedis.lrem(createUser2SessionIdKey(userId), 1, sessionId);
+						SessionDetails sessionDetails = createSessionDetails(jedis.hgetAll(createUser2SessionDetailsKey(userId, sessionId)));
+						
+						if (sessionDetails == null)
+						{
+							jedis.lrem(createUser2SessionIdKey(userId), 1, sessionId);
+						}
+						else if (sessionDetails != null && !isSessionValid(sessionDetails.getLastAccessedTS()))
+						{
+							jedis.lrem(createUser2SessionIdKey(userId), 1, sessionId);
+							jedis.del(createUser2SessionDetailsKey(userId, sessionId));
+						}
 					}
-					else if (sessionDetails != null && !isSessionValid(sessionDetails.getLastAccessedTS()))
-					{
-						jedis.lrem(createUser2SessionIdKey(userId), 1, sessionId);
-						jedis.del(createUser2SessionDetailsKey(userId, sessionId));
-					}
-				}
-				return null;
-			});
+					return null;
+				});
+			}
+			catch (ResourceException e)
+			{
+				throw new DAOException(e);
+			}
 		}
 	}
 	
