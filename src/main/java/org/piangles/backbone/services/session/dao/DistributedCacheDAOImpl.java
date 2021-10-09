@@ -218,7 +218,7 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 			String sessionId = map.get(SESSION_ID);
 			long createdTS = Long.parseLong(map.get(CREATED_TS));
 			long lastAccessedTS = Long.parseLong(map.get(LAST_ACCESSED_TS));
-			sessionDetails = new SessionDetails(userId, sessionId, createdTS, lastAccessedTS);
+			sessionDetails = new SessionDetails(userId, sessionId, getSessionTimeout(), createdTS, lastAccessedTS);
 		}
 		return sessionDetails;
 	}

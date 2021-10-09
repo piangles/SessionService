@@ -92,7 +92,7 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 
 	protected final boolean isSessionValid(long lastAccessedTS)
 	{
-		return ((System.currentTimeMillis() - lastAccessedTS) < sessionTimeout);
+		return ((System.currentTimeMillis() - lastAccessedTS) < (sessionTimeout * 1000));
 	}
 	
 	protected final long getSessionTimeout()

@@ -67,10 +67,13 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	private static final String DEFAULT_DAO_TYPE = "DistributedCache";
 	
 	private LoggingService logger = Locator.getInstance().getLoggingService();
+	
 	private HashMap<String, String> predeterminedSessionIdMap = null;
 	private SessionManagementDAO sessionManagementDAO;
-	private boolean allowMultipleSessionsPerUser;
-	private int maxSessiontCountPerUser;
+	
+	private long sessionTimeout = 0L;
+	private boolean allowMultipleSessionsPerUser = false;
+	private int maxSessiontCountPerUser = 1;
 
 	public SessionManagementServiceImpl() throws Exception
 	{
@@ -127,11 +130,10 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		
 		String sessionTimeoutAsStr = sessionMgmtProperties.getProperty(SESSION_TIMEOUT);
 		String markSessionTimeoutAsStr = sessionMgmtProperties.getProperty(MARK_SESSION_TIMEOUT);
-		long sessionTimeout;
 		int markSessionTimeout;
 		try
 		{
-			sessionTimeout = Integer.parseInt(sessionTimeoutAsStr) * 1000;
+			sessionTimeout = Integer.parseInt(sessionTimeoutAsStr);
 			markSessionTimeout = Integer.parseInt(markSessionTimeoutAsStr);
 		}
 		catch(Exception expt)
@@ -204,7 +206,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			}
 
 			String sessionId = UUID.randomUUID().toString();
-			sessionDetails = new SessionDetails(userId, sessionId);
+			sessionDetails = new SessionDetails(userId, sessionId, sessionTimeout);
 
 			logger.info("Registered Session for UserId:" + userId + " SessionId:"+sessionId);
 
@@ -212,8 +214,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		}
 		catch (DAOException e)
 		{
-			String message = "Unable to register session because of : " + e.getMessage();
-			logger.error(message, e);
+			String message = "Unable to register session for UserId: " + userId;
+			logger.error(message + ". Reason: " + e.getMessage(), e);
 			throw new SessionManagementException(message);
 		}
 
@@ -245,8 +247,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		}
 		catch (DAOException e)
 		{
-			String message = "Unable to validate session because of : " + e.getMessage();
-			logger.error(message, e);
+			String message = "Unable to validate session for UserId: " + userId;
+			logger.error(message + ". Reason: " + e.getMessage(), e);
 			throw new SessionManagementException(message);
 		}
 		return valid;
@@ -267,8 +269,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		}
 		catch (DAOException e)
 		{
-			String message = "Unable to unregister session because of : " + e.getMessage();
-			logger.error(message, e);
+			String message = "Unable to unregister session for UserId: " + userId;
+			logger.error(message + ". Reason: " + e.getMessage(), e);
 			throw new SessionManagementException(message);
 		}
 	}
@@ -288,8 +290,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		}
 		catch (DAOException e)
 		{
-			String message = "Unable to markForUnregister session because of : " + e.getMessage();
-			logger.error(message, e);
+			String message = "Unable to markForUnregister session for UserId: " + userId;
+			logger.error(message + ". Reason: " + e.getMessage(), e);
 			throw new SessionManagementException(message);
 		}
 	}
@@ -309,8 +311,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		}
 		catch (DAOException e)
 		{
-			String message = "Unable to makeLastAccessedCurrent for session because of : " + e.getMessage();
-			logger.error(message, e);
+			String message = "Unable to makeLastAccessedCurrent session for UserId: " + userId;
+			logger.error(message + ". Reason: " + e.getMessage(), e);
 			throw new SessionManagementException(message);
 		}
 	}
