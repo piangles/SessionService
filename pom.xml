@@ -24,19 +24,13 @@
 		<dependency>
 			<groupId>org.piangles.core</groupId>
 			<artifactId>Core</artifactId>
-			<version>1.4</version>
+			<version>1.6</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.piangles.backbone.services</groupId>
 			<artifactId>BackboneServicesLocator</artifactId>
-			<version>2.9</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>42.2.24</version>
+			<version>3.0</version>
 		</dependency>
 
 		<dependency>
@@ -50,16 +44,11 @@
 			<artifactId>jedis</artifactId>
 			<version>3.3.0</version>
 		</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.8.5</version>
-		</dependency>
-
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>4.13.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
