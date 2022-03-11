@@ -84,13 +84,26 @@ public final class InMemoryDAOImpl extends AbstractSessionManagementDAO
 	}
 
 	@Override
+	public synchronized void markAuthenticatedByMFA(String userId, String sessionId) throws DAOException
+	{
+		SessionDetails sessionDetails = getSessionDetailsIfValidById(userId, sessionId);
+		if (sessionDetails != null)
+		{
+			SessionDetails newSessionDetails = new SessionDetails(userId, sessionId, true, 
+																	sessionDetails.getInactivityExpiryTimeInSeconds(), 
+																	sessionDetails.getCreatedTS(), sessionDetails.getLastAccessedTS());
+			sessionIdMap.put(sessionDetails.getSessionId(), newSessionDetails);
+		}
+	}
+
+	@Override
 	protected synchronized List<String> getAllUserSessionIds(String userId) throws DAOException
 	{
 		return userIdSessionMap.get(userId);
 	}
 
 	@Override
-	protected synchronized SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException
+	public synchronized SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException
 	{
 		return sessionIdMap.get(sessionId);
 	}

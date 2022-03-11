@@ -38,6 +38,7 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	
 	private static final String USER_ID = "UserId";
 	private static final String SESSION_ID = "SessionId";
+	private static final String AUTHENTICATED_BY_MFA = "authenticatedByMultiFactor";
 	private static final String CREATED_TS = "CreatedTS";
 	private static final String LAST_ACCESSED_TS = "LastAccessedTS";
 	
@@ -129,6 +130,24 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	}
 
 	@Override
+	public void markAuthenticatedByMFA(String userId, String sessionId) throws DAOException
+	{
+		try
+		{
+			redisCache.execute((jedis) -> {
+				String key = createUser2SessionDetailsKey(userId, sessionId);
+				jedis.hset(key, AUTHENTICATED_BY_MFA, Boolean.TRUE.toString());
+				jedis.persist(key);//Remove Expiry in case it was set.
+				return null;
+			});
+		}
+		catch (ResourceException e)
+		{
+			throw new DAOException(e);
+		}
+	}
+
+	@Override
 	protected List<String> getAllUserSessionIds(String userId) throws DAOException
 	{
 		List<String> sessionIds;
@@ -147,7 +166,7 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	}
 
 	@Override
-	protected SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException
+	public SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException
 	{
 		SessionDetails sessionDetails;
 		try
@@ -203,6 +222,7 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 		Map<String, String> map = new HashMap<>();
 		map.put(USER_ID, sessionDetails.getUserId());
 		map.put(SESSION_ID, sessionDetails.getSessionId());
+		map.put(AUTHENTICATED_BY_MFA, ""+sessionDetails.isAuthenticatedByMultiFactor());
 		map.put(CREATED_TS, "" + sessionDetails.getCreatedTS());
 		map.put(LAST_ACCESSED_TS, "" + sessionDetails.getLastAccessedTS());
 		
@@ -216,9 +236,11 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 		{
 			String userId = map.get(USER_ID);
 			String sessionId = map.get(SESSION_ID);
+			boolean authenticatedByMFA = Boolean.parseBoolean(map.get(AUTHENTICATED_BY_MFA));
 			long createdTS = Long.parseLong(map.get(CREATED_TS));
 			long lastAccessedTS = Long.parseLong(map.get(LAST_ACCESSED_TS));
-			sessionDetails = new SessionDetails(userId, sessionId, getSessionTimeout(), createdTS, lastAccessedTS);
+			
+			sessionDetails = new SessionDetails(userId, sessionId, authenticatedByMFA, getSessionTimeout(), createdTS, lastAccessedTS);
 		}
 		return sessionDetails;
 	}

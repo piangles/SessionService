@@ -223,11 +223,37 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	}
 
 	@Override
+	public SessionDetails getSessionDetails(String userId, String sessionId) throws SessionManagementException
+	{
+		SessionDetails sessionDetails = null;
+		
+		logger.info("Retreving Session for UserId:" + userId + " SessionId:" + sessionId);
+		
+		if (StringUtils.isAnyBlank(userId, sessionId))
+		{
+			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
+		}
+		
+		try
+		{
+			sessionDetails = sessionManagementDAO.getSessionDetails(userId, sessionId);
+		}
+		catch (DAOException e)
+		{
+			String message = "Unable to getSessionDetails for UserId: " + userId;
+			logger.error(message + ". Reason: " + e.getMessage(), e);
+			throw new SessionManagementException(message);
+		}
+
+		return sessionDetails;
+	}
+
+	@Override
 	public boolean isValid(String userId, String sessionId) throws SessionManagementException
 	{
 		boolean valid = false;
 	
-		logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
+		//logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
 		if (StringUtils.isAnyBlank(userId, sessionId))
 		{
 			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
@@ -300,6 +326,27 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	public void makeLastAccessedCurrent(String userId, String sessionId) throws SessionManagementException
 	{
 		logger.info("Making LastAccessedCurrent Session for UserId:" + userId + " SessionId:"+sessionId);
+		if (StringUtils.isAnyBlank(userId, sessionId))
+		{
+			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
+		}
+
+		try
+		{
+			sessionManagementDAO.updateLastAccessed(userId, sessionId);
+		}
+		catch (DAOException e)
+		{
+			String message = "Unable to makeLastAccessedCurrent session for UserId: " + userId;
+			logger.error(message + ". Reason: " + e.getMessage(), e);
+			throw new SessionManagementException(message);
+		}
+	}
+
+	@Override
+	public void markAuthenticatedByMFA(String userId, String sessionId) throws SessionManagementException
+	{
+		logger.info("Marking Session AuthenticatedByMFA  for UserId:" + userId + " SessionId:"+sessionId);
 		if (StringUtils.isAnyBlank(userId, sessionId))
 		{
 			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");

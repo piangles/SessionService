@@ -106,7 +106,6 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 	}
 
 	protected abstract List<String> getAllUserSessionIds(String userId) throws DAOException;
-	protected abstract SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException;
 	//Remove from all caches expired sessions for this User
 	protected abstract void removeAllExpiredSessionDetails(String userId) throws DAOException;
 }

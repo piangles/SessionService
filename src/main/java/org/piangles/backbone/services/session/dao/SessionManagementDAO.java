@@ -26,6 +26,8 @@ public interface SessionManagementDAO
 {
 	public void storeSessionDetails(SessionDetails sessionDetails) throws DAOException;
 	
+	public SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException;
+	
 	//Remove from all caches for this user and this sessionId
 	public void removeSessionDetails(String userId, String sessionId) throws DAOException;
 	
@@ -36,6 +38,8 @@ public interface SessionManagementDAO
 	
 	//Touch lastAccessed if session is valid
 	public void updateLastAccessed(String userId, String sessionId) throws DAOException;
+	
+	public void markAuthenticatedByMFA(String userId, String sessionId) throws DAOException;
 	
 	public int getExistingValidSessionCount(String userId) throws DAOException;
 }
