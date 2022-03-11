@@ -354,7 +354,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 
 		try
 		{
-			sessionManagementDAO.updateLastAccessed(userId, sessionId);
+			sessionManagementDAO.markAuthenticatedByMFA(userId, sessionId);
 		}
 		catch (DAOException e)
 		{
