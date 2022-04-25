@@ -206,7 +206,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			}
 
 			String sessionId = UUID.randomUUID().toString();
-			sessionDetails = new SessionDetails(userId, sessionId, sessionTimeout);
+			sessionDetails = new SessionDetails(userId, sessionId, "PostAuthentication", sessionTimeout);
 
 			logger.info("Registered Session for UserId:" + userId + " SessionId:"+sessionId);
 
@@ -346,7 +346,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	@Override
 	public void markAuthenticatedByMFA(String userId, String sessionId) throws SessionManagementException
 	{
-		logger.info("Marking Session AuthenticatedByMFA  for UserId:" + userId + " SessionId:"+sessionId);
+		logger.info("Marking Session AuthenticatedByMFA  for UserId:" + userId + " SessionId:" + sessionId);
 		if (StringUtils.isAnyBlank(userId, sessionId))
 		{
 			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
@@ -358,7 +358,28 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		}
 		catch (DAOException e)
 		{
-			String message = "Unable to makeLastAccessedCurrent session for UserId: " + userId;
+			String message = "Unable to markAuthenticatedByMFA for UserId: " + userId;
+			logger.error(message + ". Reason: " + e.getMessage(), e);
+			throw new SessionManagementException(message);
+		}
+	}
+
+	@Override
+	public void updateAuthenticationState(String userId, String sessionId, String authenticationState) throws SessionManagementException
+	{
+		logger.info("Updating Session AuthenticationState  for UserId:" + userId + " SessionId:" + sessionId + " AuthenticationState:" + authenticationState);
+		if (StringUtils.isAnyBlank(userId, sessionId))
+		{
+			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
+		}
+
+		try
+		{
+			sessionManagementDAO.updateAuthenticationState(userId, sessionId, authenticationState);
+		}
+		catch (DAOException e)
+		{
+			String message = "Unable to updateAuthenticationState for UserId: " + userId;
 			logger.error(message + ". Reason: " + e.getMessage(), e);
 			throw new SessionManagementException(message);
 		}
