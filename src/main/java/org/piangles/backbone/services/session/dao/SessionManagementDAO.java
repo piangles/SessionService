@@ -43,5 +43,7 @@ public interface SessionManagementDAO
 	
 	public void markAuthenticatedByMFA(String userId, String sessionId) throws DAOException;
 	
+	public void markAuthenticatedByToken(String userId, String sessionId) throws DAOException;
+	
 	public int getExistingValidSessionCount(String userId) throws DAOException;
 }

@@ -40,6 +40,7 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 	private static final String SESSION_ID = "SessionId";
 	private static final String AUTHENTICATION_STATE = "authenticationState";
 	private static final String AUTHENTICATED_BY_MFA = "authenticatedByMultiFactor";
+	private static final String AUTHENTICATED_BY_TOKEN = "authenticatedByToken";
 	private static final String CREATED_TS = "CreatedTS";
 	private static final String LAST_ACCESSED_TS = "LastAccessedTS";
 	
@@ -148,6 +149,23 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 		}
 	}
 
+	@Override
+	public void markAuthenticatedByToken(String userId, String sessionId) throws DAOException
+	{
+		try
+		{
+			redisCache.execute((jedis) -> {
+				String key = createUser2SessionDetailsKey(userId, sessionId);
+				jedis.hset(key, AUTHENTICATED_BY_TOKEN, Boolean.TRUE.toString());
+				jedis.persist(key);//Remove Expiry in case it was set.
+				return null;
+			});
+		}
+		catch (ResourceException e)
+		{
+			throw new DAOException(e);
+		}
+	}
 
 	@Override
 	public void updateAuthenticationState(String userId, String sessionId, String authenticationState) throws DAOException
@@ -243,6 +261,7 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 		map.put(USER_ID, sessionDetails.getUserId());
 		map.put(SESSION_ID, sessionDetails.getSessionId());
 		map.put(AUTHENTICATED_BY_MFA, ""+sessionDetails.isAuthenticatedByMultiFactor());
+		map.put(AUTHENTICATED_BY_TOKEN, ""+sessionDetails.isAuthenticatedByToken());
 		map.put(AUTHENTICATION_STATE, sessionDetails.getAuthenticationState());
 		map.put(CREATED_TS, "" + sessionDetails.getCreatedTS());
 		map.put(LAST_ACCESSED_TS, "" + sessionDetails.getLastAccessedTS());
@@ -258,11 +277,12 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 			String userId = map.get(USER_ID);
 			String sessionId = map.get(SESSION_ID);
 			boolean authenticatedByMFA = Boolean.parseBoolean(map.get(AUTHENTICATED_BY_MFA));
+			boolean authenticatedByToken = Boolean.parseBoolean(map.get(AUTHENTICATED_BY_TOKEN));
 			String authenticationState = map.get(AUTHENTICATION_STATE);
 			long createdTS = Long.parseLong(map.get(CREATED_TS));
 			long lastAccessedTS = Long.parseLong(map.get(LAST_ACCESSED_TS));
 			
-			sessionDetails = new SessionDetails(userId, sessionId, authenticationState, authenticatedByMFA, getSessionTimeout(), createdTS, lastAccessedTS);
+			sessionDetails = new SessionDetails(userId, sessionId, authenticationState, authenticatedByMFA, authenticatedByToken, getSessionTimeout(), createdTS, lastAccessedTS);
 		}
 		return sessionDetails;
 	}

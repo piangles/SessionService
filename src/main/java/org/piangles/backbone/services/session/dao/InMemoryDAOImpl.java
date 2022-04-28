@@ -89,20 +89,39 @@ public final class InMemoryDAOImpl extends AbstractSessionManagementDAO
 		SessionDetails sessionDetails = getSessionDetailsIfValidById(userId, sessionId);
 		if (sessionDetails != null)
 		{
-			SessionDetails newSessionDetails = new SessionDetails(userId, sessionId, sessionDetails.getAuthenticationState(), true, 
+			SessionDetails newSessionDetails = new SessionDetails(	userId, sessionId, 
+																	sessionDetails.getAuthenticationState(), 
+																	true, sessionDetails.isAuthenticatedByToken(),
 																	sessionDetails.getInactivityExpiryTimeInSeconds(), 
 																	sessionDetails.getCreatedTS(), sessionDetails.getLastAccessedTS());
 			sessionIdMap.put(sessionDetails.getSessionId(), newSessionDetails);
 		}
 	}
-	
+
+	@Override
+	public synchronized void markAuthenticatedByToken(String userId, String sessionId) throws DAOException
+	{
+		SessionDetails sessionDetails = getSessionDetailsIfValidById(userId, sessionId);
+		if (sessionDetails != null)
+		{
+			SessionDetails newSessionDetails = new SessionDetails(	userId, sessionId, 
+																	sessionDetails.getAuthenticationState(), 
+																	sessionDetails.isAuthenticatedByMultiFactor(), true,
+																	sessionDetails.getInactivityExpiryTimeInSeconds(), 
+																	sessionDetails.getCreatedTS(), sessionDetails.getLastAccessedTS());
+			sessionIdMap.put(sessionDetails.getSessionId(), newSessionDetails);
+		}
+	}
+
 	@Override
 	public void updateAuthenticationState(String userId, String sessionId, String authenticationState) throws DAOException
 	{
 		SessionDetails sessionDetails = getSessionDetailsIfValidById(userId, sessionId);
 		if (sessionDetails != null)
 		{
-			SessionDetails newSessionDetails = new SessionDetails(userId, sessionId, sessionDetails.getAuthenticationState(), true, 
+			SessionDetails newSessionDetails = new SessionDetails(userId, sessionId, 
+																	authenticationState, 
+																	sessionDetails.isAuthenticatedByMultiFactor(), sessionDetails.isAuthenticatedByToken(),
 																	sessionDetails.getInactivityExpiryTimeInSeconds(), 
 																	sessionDetails.getCreatedTS(), sessionDetails.getLastAccessedTS());
 			sessionIdMap.put(sessionDetails.getSessionId(), newSessionDetails);
