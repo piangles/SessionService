@@ -26,6 +26,7 @@ import org.piangles.core.dao.DAOException;
 
 public abstract class AbstractSessionManagementDAO implements SessionManagementDAO
 {
+	private static final String POST_AUTHENTICATION_STATE = "PostAuthentication";
 	private long sessionTimeout;
 	private int markSessionTimeout;
 
@@ -62,7 +63,7 @@ public abstract class AbstractSessionManagementDAO implements SessionManagementD
 			 for (String sessionId : allUserSessionIds)
 			 {
 				 SessionDetails sessionDetails = getSessionDetailsIfValidById(userId, sessionId);
-				 if (sessionDetails != null)
+				 if (sessionDetails != null && POST_AUTHENTICATION_STATE.equals(sessionDetails.getAuthenticationState()))
 				 {
 					 existingSessionCount++;
 				 }
