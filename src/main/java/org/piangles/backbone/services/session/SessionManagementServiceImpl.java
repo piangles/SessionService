@@ -344,48 +344,6 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	}
 
 	@Override
-	public void markAuthenticatedByMFA(String userId, String sessionId) throws SessionManagementException
-	{
-		logger.info("Marking Session AuthenticatedByMFA  for UserId:" + userId + " SessionId:" + sessionId);
-		if (StringUtils.isAnyBlank(userId, sessionId))
-		{
-			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
-		}
-
-		try
-		{
-			sessionManagementDAO.markAuthenticatedByMFA(userId, sessionId);
-		}
-		catch (DAOException e)
-		{
-			String message = "Unable to markAuthenticatedByMFA for UserId: " + userId;
-			logger.error(message + ". Reason: " + e.getMessage(), e);
-			throw new SessionManagementException(message);
-		}
-	}
-
-	@Override
-	public void markAuthenticatedByToken(String userId, String sessionId) throws SessionManagementException
-	{
-		logger.info("Marking Session AuthenticatedByToken  for UserId:" + userId + " SessionId:" + sessionId);
-		if (StringUtils.isAnyBlank(userId, sessionId))
-		{
-			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
-		}
-
-		try
-		{
-			sessionManagementDAO.markAuthenticatedByToken(userId, sessionId);
-		}
-		catch (DAOException e)
-		{
-			String message = "Unable to markAuthenticatedByToken for UserId: " + userId;
-			logger.error(message + ". Reason: " + e.getMessage(), e);
-			throw new SessionManagementException(message);
-		}
-	}
-
-	@Override
 	public void updateAuthenticationState(String userId, String sessionId, String authenticationState) throws SessionManagementException
 	{
 		logger.info("Updating Session AuthenticationState  for UserId:" + userId + " SessionId:" + sessionId + " AuthenticationState:" + authenticationState);
