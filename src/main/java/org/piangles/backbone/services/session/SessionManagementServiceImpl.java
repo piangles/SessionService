@@ -74,6 +74,7 @@ public class SessionManagementServiceImpl implements SessionManagementService
 	private long sessionTimeout = 0L;
 	private boolean allowMultipleSessionsPerUser = false;
 	private int maxSessiontCountPerUser = 1;
+	
 
 	public SessionManagementServiceImpl() throws Exception
 	{
