@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>org.piangles.backbone.services</groupId>
 			<artifactId>BackboneServicesLocator</artifactId>
-			<version>4.7</version>
+			<version>4.8</version>
 		</dependency>
 
 		<dependency>
