@@ -19,6 +19,8 @@
  
 package org.piangles.backbone.services.session.dao;
 
+import java.util.List;
+
 import org.piangles.backbone.services.session.SessionDetails;
 import org.piangles.core.dao.DAOException;
 
@@ -27,6 +29,8 @@ public interface SessionManagementDAO
 	public void storeSessionDetails(SessionDetails sessionDetails) throws DAOException;
 	
 	public SessionDetails getSessionDetails(String userId, String sessionId) throws DAOException;
+	
+	public List<SessionDetails> getAllSessionDetails(String userId) throws DAOException;
 	
 	//Remove from all caches for this user and this sessionId
 	public void removeSessionDetails(String userId, String sessionId) throws DAOException;

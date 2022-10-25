@@ -110,6 +110,27 @@ public final class InMemoryDAOImpl extends AbstractSessionManagementDAO
 	}
 	
 	@Override
+	public List<SessionDetails> getAllSessionDetails(String userId) throws DAOException 
+	{
+		
+		List<SessionDetails> userSessionDetails = new ArrayList<>();
+		
+		List<String> userSessionIds = getAllUserSessionIds(userId);
+		
+		if(!userSessionIds.isEmpty() && userSessionIds != null)
+		{
+			for(String sessionId : userSessionIds)
+			{
+				SessionDetails sessionDetails = getSessionDetails(userId, sessionId);
+				
+				userSessionDetails.add(sessionDetails);
+			}
+		}
+
+		return userSessionDetails;
+	}
+	
+	@Override
 	protected synchronized void removeAllExpiredSessionDetails(String userId) throws DAOException
 	{
 		List<String> validSessionIds = new ArrayList<String>();

@@ -19,6 +19,7 @@
  
 package org.piangles.backbone.services.session.dao;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -182,6 +183,27 @@ public final class DistributedCacheDAOImpl extends AbstractSessionManagementDAO
 			throw new DAOException(e);
 		}
 		return sessionDetails;
+	}
+	
+
+	@Override
+	public List<SessionDetails> getAllSessionDetails(String userId) throws DAOException
+	{
+		List<SessionDetails> userSessionDetails = new ArrayList<>();
+		
+		List<String> userSessionIds = getAllUserSessionIds(userId);
+		
+		if(!userSessionIds.isEmpty() && userSessionIds != null)
+		{
+			for(String sessionId : userSessionIds)
+			{
+				SessionDetails sessionDetails = getSessionDetails(userId, sessionId);
+				
+				userSessionDetails.add(sessionDetails);
+			}
+		}
+
+		return userSessionDetails;
 	}
 	
 	@Override

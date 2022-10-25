@@ -20,6 +20,7 @@
 package org.piangles.backbone.services.session;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -362,6 +363,38 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			String message = "Unable to updateAuthenticationState for UserId: " + userId;
 			logger.error(message + ". Reason: " + e.getMessage(), e);
 			throw new SessionManagementException(message);
+		}
+	}
+
+	@Override
+	public List<SessionDetails> getAllSessions(String userId) throws SessionManagementException 
+	{
+		List<SessionDetails> userSessionDetails = null;
+		logger.info("Retrieving all SessionDetails for UserId:" + userId );
+		
+		try 
+		{
+			userSessionDetails= sessionManagementDAO.getAllSessionDetails(userId);
+		} 
+		catch (DAOException e) 
+		{
+			String message = "Unable to getAllSessions for UserId: " + userId;
+			logger.error(message + ". Reason: " + e.getMessage(), e);
+			throw new SessionManagementException(message);
+		}
+		return userSessionDetails;
+	}
+
+	@Override
+	public void invalidateAllSessions(String userId) throws SessionManagementException 
+	{
+		logger.info("invalidating all sessions for UserId:" + userId );
+		
+		List<SessionDetails> sessionDetailsList = getAllSessions(userId);
+		
+		for(SessionDetails sessionDetails : sessionDetailsList)
+		{
+			unregister(userId, sessionDetails.getSessionId());
 		}
 	}
 }
