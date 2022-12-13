@@ -392,9 +392,16 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		
 		List<SessionDetails> sessionDetailsList = getAllSessions(userId);
 		
-		for(SessionDetails sessionDetails : sessionDetailsList)
+		if(sessionDetailsList != null && !sessionDetailsList.isEmpty())
 		{
-			unregister(userId, sessionDetails.getSessionId());
+			for(SessionDetails sessionDetails : sessionDetailsList)
+			{
+				unregister(userId, sessionDetails.getSessionId());
+			}
+		}
+		else
+		{
+			logger.info("No SessionDetails found for UserId:" + userId + ". Skipping unregister");
 		}
 	}
 }
