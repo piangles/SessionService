@@ -396,7 +396,10 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		{
 			for(SessionDetails sessionDetails : sessionDetailsList)
 			{
-				unregister(userId, sessionDetails.getSessionId());
+				if(sessionDetails != null)
+				{
+					unregister(userId, sessionDetails.getSessionId());
+				}
 			}
 		}
 		else
