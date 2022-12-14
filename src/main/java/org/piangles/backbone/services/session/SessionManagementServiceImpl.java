@@ -279,6 +279,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			logger.error(message + ". Reason: " + e.getMessage(), e);
 			throw new SessionManagementException(message);
 		}
+		//System.out.println("Validating Session for UserId:" + userId + " SessionId:"+sessionId + " Validation result: " + valid);
+		
 		return valid;
 	}
 
