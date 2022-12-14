@@ -256,7 +256,6 @@ public class SessionManagementServiceImpl implements SessionManagementService
 		boolean valid = false;
 	
 		//logger.info("Validating Session for UserId:" + userId + " SessionId:"+sessionId);
-	
 		if (StringUtils.isAnyBlank(userId, sessionId))
 		{
 			throw new ValidationException("Invalid userId/sessionId. UserId and SessionId cannot be empty or null.");
@@ -280,8 +279,8 @@ public class SessionManagementServiceImpl implements SessionManagementService
 			logger.error(message + ". Reason: " + e.getMessage(), e);
 			throw new SessionManagementException(message);
 		}
+		//System.out.println("Validating Session for UserId:" + userId + " SessionId:"+sessionId + " Validation result: " + valid);
 		
-		System.out.println("Validating Session for UserId:" + userId + " SessionId:"+sessionId + " Validation result: " + valid);
 		return valid;
 	}
 
